@@ -2,13 +2,13 @@ package main
 
 import (
 	"cdk-workshop-2/business"
-	"cdk-workshop-2/logging"
+	"cdk-workshop-2/log"
 	"fmt"
 	"testing"
 )
 
 func MainRunner(sourceIP string, path string) string {
-	logging.Debug("sourceIP: ", sourceIP, "path: ", path)
+	log.Logger.Debug("sourceIP: ", sourceIP, "path: ", path)
 	return business.Hello(sourceIP, path)
 }
 
@@ -21,7 +21,7 @@ var tests = []struct {
 }
 
 func TestMain(t *testing.T) {
-	logging.Init("gohello", "ERROR")
+	log.Init("gohello")
 
 	// Test businessFunction
 	for _, tt := range tests {

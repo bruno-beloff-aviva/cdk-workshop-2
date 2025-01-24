@@ -1,14 +1,14 @@
 package business
 
 import (
-	"cdk-workshop-2/logging"
+	"cdk-workshop-2/log"
 	"fmt"
 	"strings"
 	"time"
 )
 
 func Hello(client string, request string) string {
-	logging.Infof("businessFunction - client:%s request:%s", client, request)
+	log.Logger.Infof("businessFunction - client:%s request:%s", client, request)
 
 	time.Sleep(1 * time.Second)
 
@@ -17,7 +17,7 @@ func Hello(client string, request string) string {
 	}
 
 	if strings.Contains(request, "panic") {
-		logging.Error("Panic!")
+		log.Logger.Error("Panic!")
 		panic(request)
 	}
 
