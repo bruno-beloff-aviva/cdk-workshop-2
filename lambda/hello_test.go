@@ -1,15 +1,15 @@
 package main
 
 import (
+	"cdk-workshop-2/business"
+	"cdk-workshop-2/logging"
 	"fmt"
 	"testing"
-
-	"github.com/labstack/gommon/log"
 )
 
 func MainRunner(sourceIP string, path string) string {
-	Logger.Debug("sourceIP: ", sourceIP, "path: ", path)
-	return businessFunction(sourceIP, path)
+	logging.Debug("sourceIP: ", sourceIP, "path: ", path)
+	return business.Hello(sourceIP, path)
 }
 
 var tests = []struct {
@@ -21,8 +21,7 @@ var tests = []struct {
 }
 
 func TestMain(t *testing.T) {
-	Logger = log.New("gohello")
-	Logger.SetLevel(log.ERROR)
+	logging.Init("gohello", "ERROR")
 
 	// Test businessFunction
 	for _, tt := range tests {
