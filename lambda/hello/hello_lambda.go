@@ -16,7 +16,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/joerdav/zapray"
 	"go.uber.org/zap"
 )
@@ -35,6 +34,7 @@ func init() {
 	logger.Info("*** init")
 
 	// logger.Info("logger level: " + logger.Level().String())
+
 	// level := os.Getenv("LOG_LEVEL") // may also be set by ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO
 	// fmt.Println("log level: ", level)
 
@@ -60,14 +60,14 @@ func main() {
 	cfg, err := config.LoadDefaultConfig(ctx)
 
 	if err != nil {
-		logger.Info("err: " + err.Error())
+		panic("err: " + err.Error())
 	}
 
-	dbManager = dynamo.DynamoManager{Log: logger, TableName: tableName, DynamoDbClient: dynamodb.NewFromConfig(cfg)}
+	dbManager = dynamo.NewDynamoManager(logger, cfg, tableName)
 	is_available := dbManager.TableIsAvailable(ctx)
 
 	if !is_available {
-		panic("Table is not available")
+		panic("Table not available: " + tableName)
 	}
 
 	lambda.Start(handler)
