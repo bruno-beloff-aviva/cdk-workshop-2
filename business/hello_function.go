@@ -1,14 +1,17 @@
 package business
 
 import (
-	"cdk-workshop-2/log"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/joerdav/zapray"
+	"github.com/labstack/gommon/log"
+	"go.uber.org/zap"
 )
 
-func Hello(client string, request string) string {
-	log.Logger.Infof("businessFunction - client:%s request:%s", client, request)
+func Hello(logger *zapray.Logger, client string, request string) string {
+	logger.Info("businessFunction", zap.String("client", client), zap.String("request", request))
 
 	time.Sleep(1 * time.Second)
 
@@ -17,7 +20,7 @@ func Hello(client string, request string) string {
 	}
 
 	if strings.Contains(request, "panic") {
-		log.Logger.Error("Panic!")
+		log.Error("Panic!")
 		panic(request)
 	}
 

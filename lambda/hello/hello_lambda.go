@@ -9,84 +9,87 @@ import (
 	"cdk-workshop-2/business/hits"
 	"cdk-workshop-2/dynamo"
 	"cdk-workshop-2/lambda/response"
-	"cdk-workshop-2/log"
+	"encoding/json"
+	"fmt"
 
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/joerdav/zapray"
+	"go.uber.org/zap"
 )
 
 var TableName string
+var Log *zapray.Logger
+var Err error
 
 func init() {
-	fmt.Println("hello_lambda init!!")
+	Log, Err = zapray.NewProduction()
+	if Err != nil {
+		panic("failed to create logger: " + Err.Error())
+	}
+	Log.Info("hello_lambda init!!")
+
+	Log.Info("log level: " + Log.Level().String())
 
 	// level := os.Getenv("LOG_LEVEL") // may also be set by ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO
 	// fmt.Println("log level: ", level)
 
-	log.Init("hello")
-
 	TableName = os.Getenv("HITS_TABLE_NAME")
-	log.Logger.Info("TableName", TableName)
+	Log.Info("TableName: " + TableName)
 }
 
 func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Logger.Info(request)
-	log.Logger.Info("handleRequest", request.Path)
+	Log.Info("handler log level: " + Log.Level().String())
+
+	requestJSON, err := json.Marshal(request)
+	if err != nil {
+		Log.Error("Failed to marshal request: " + err.Error())
+	} else {
+		Log.Info(string(requestJSON))
+	}
+	Log.Info("handleRequest" + request.Path)
 
 	var message string
 	sourceIP := request.RequestContext.Identity.SourceIP
 
-	message = business.Hello(sourceIP, request.Path)
-
-	// https://github.com/awsdocs/aws-lambda-developer-guide/blob/main/sample-apps/blank-go/function/main.go
+	message = business.Hello(Log, sourceIP, request.Path)
 
 	return response.New200(message), nil
 }
 
 func main() {
-	fmt.Println("hello_lambda main!!")
+	Log.Info("hello_lambda main!!")
 
-	cfg, err1 := config.LoadDefaultConfig(context.TODO()) //	config.WithSharedConfigProfile("bb")
+	ctx := context.Background() //	context.TODO(), config.WithSharedConfigProfile("bb")
+	cfg, err1 := config.LoadDefaultConfig(ctx)
 
-	log.Logger.Infof("cfg: %v", cfg)
-	log.Logger.Infof("err1: %v", err1)
+	Log.Info("main: ", zap.String("cfg", fmt.Sprintf("%v", cfg)))
+	if err1 != nil {
+		Log.Info("err1: " + err1.Error())
+	}
 
-	manager := &dynamo.TableManager{TableName: TableName, DynamoDbClient: dynamodb.NewFromConfig(cfg)}
-	log.Logger.Infof("manager: %v", manager)
+	manager := dynamo.DynamoManager{Log: Log, TableName: TableName, DynamoDbClient: dynamodb.NewFromConfig(cfg)}
+	Log.Info("main: ", zap.Any("manager", manager))
 
 	exists := manager.TableExists(context.Background())
-	log.Logger.Infof("exists: %v", exists)
+	Log.Info("main: ", zap.Any("exists", exists))
 
-	var hit hits.Hits
-	var err error
+	hit := hits.NewHits("/test")
+	Log.Info("main: ", zap.Any("hit", hit))
 
-	// hit = hits.NewHits("/test")
-	// log.Logger.Infof("hit: %v", hit)
-	// err = manager.Insert(context.Background(), &hit)
-	// log.Logger.Infof("hit: %v", hit)
-	// log.Logger.Infof("err: %v", err)
-
-	hit = hits.NewHits("/test")
-	log.Logger.Infof("hit: %#v", hit)
-
-	err = manager.Get(context.Background(), &hit)
-	if err != nil {
-		log.Logger.Error("Failed to get hit", err)
-		return
-	}
-	log.Logger.Infof("got hit: %#v", hit)
+	manager.Get(ctx, &hit)
+	Log.Info("main got: ", zap.Any("hit", hit))
 
 	hit.Increment()
-	log.Logger.Infof("incremented hit: %#v", hit)
+	Log.Info("main incremented: ", zap.Any("hit", hit))
 
-	manager.Insert(context.Background(), &hit)
-	log.Logger.Infof("inserted hit: %#v", hit)
+	manager.Insert(ctx, &hit)
+	Log.Info("main inserted: ", zap.Any("hit", hit))
 
 	lambda.Start(handleRequest)
 }

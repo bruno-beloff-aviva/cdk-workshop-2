@@ -46,6 +46,7 @@ func NewHelloHandler(stack awscdk.Stack, table awsdynamodb.Table, props HelloCou
 		Entry:                 aws.String("lambda/hello/"),
 		Timeout:               awscdk.Duration_Seconds(aws.Float64(29)),
 		ApplicationLogLevelV2: awslambda.ApplicationLogLevel_DEBUG,
+		SystemLogLevelV2:      awslambda.SystemLogLevel_DEBUG,
 		LoggingFormat:         awslambda.LoggingFormat_JSON,
 		Environment:           &lambdaEnv,
 	})
