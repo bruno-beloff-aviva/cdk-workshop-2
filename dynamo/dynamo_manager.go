@@ -37,7 +37,7 @@ func getDBKey(object DynamoAble) map[string]types.AttributeValue {
 	return dbKey
 }
 
-func (m DynamoManager) TableExists(ctx context.Context) bool {
+func (m DynamoManager) TableIsAvailable(ctx context.Context) bool {
 	_, err := m.DynamoDbClient.DescribeTable(ctx, &dynamodb.DescribeTableInput{TableName: jsii.String(m.TableName)})
 
 	return err == nil

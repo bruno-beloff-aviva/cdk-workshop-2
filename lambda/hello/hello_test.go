@@ -2,39 +2,40 @@ package main
 
 import (
 	"cdk-workshop-2/business"
+	"cdk-workshop-2/business/hits"
 	"fmt"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/joerdav/zapray"
 )
 
+var testLogger *zapray.Logger
+
 func init() {
-	Log, Err = zapray.NewProduction()
-	if Err != nil {
-		panic("failed to create logger: " + Err.Error())
+	var err error
+	testLogger, err = zapray.NewProduction()
+	if err != nil {
+		panic("failed to create logger: " + err.Error())
 	}
-	Log.Info("hello_lambda init!!")
+	testLogger.Info("hello_lambda init!!")
 
 	// level := os.Getenv("LOG_LEVEL") // may also be set by ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO
 	// fmt.Println("log level: ", level)
-
-	TableName = os.Getenv("HITS_TABLE_NAME")
-	Log.Info("TableName: " + TableName)
 }
 
 func MainRunner(sourceIP string, path string) string {
 	log.Println("sourceIP: ", sourceIP, "path: ", path)
-	return business.Hello(Log, sourceIP, path)
+	hit := hits.NewHits(path)
+	return business.Hello(testLogger, sourceIP, hit)
 }
 
 var tests = []struct {
 	sourceIP, path, want string
 }{
 	{"", "", "Hello Go world!"},
-	{"1.2.3.4", "/", "Hello Go world at / from 1.2.3.4"},
-	{"1.2.3.4", "/abc", "Hello Go world at /abc from 1.2.3.4"},
+	{"1.2.3.4", "/", "Hello Go world at / from 1.2.3.4 hits: 0"},
+	{"1.2.3.4", "/abc", "Hello Go world at /abc from 1.2.3.4 hits: 0"},
 }
 
 func TestMain(t *testing.T) {

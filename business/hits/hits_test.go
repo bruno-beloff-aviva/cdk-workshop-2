@@ -12,7 +12,7 @@ func TestNew(t *testing.T) {
 	fmt.Printf("Hit: %#v\n", hit)
 
 	assert.Equal(t, hit.Path, "/test")
-	assert.Equal(t, hit.Count, 0)
+	assert.Equal(t, hit.Count, uint(0))
 }
 
 func TestInc(t *testing.T) {
@@ -21,7 +21,7 @@ func TestInc(t *testing.T) {
 	fmt.Printf("Hit: %#v\n", hit)
 
 	assert.Equal(t, hit.Path, "/test")
-	assert.Equal(t, hit.Count, 1)
+	assert.Equal(t, hit.Count, uint(1))
 }
 
 func TestGetKeys(t *testing.T) {

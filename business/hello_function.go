@@ -1,6 +1,8 @@
 package business
 
 import (
+	"cdk-workshop-2/business/hits"
+
 	"fmt"
 	"strings"
 	"time"
@@ -10,8 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func Hello(logger *zapray.Logger, client string, request string) string {
-	logger.Info("businessFunction", zap.String("client", client), zap.String("request", request))
+func Hello(logger *zapray.Logger, client string, hit hits.Hits) string {
+	logger.Info("Hello", zap.String("client", client), zap.String("path", hit.Path))
 
 	time.Sleep(1 * time.Second)
 
@@ -19,10 +21,10 @@ func Hello(logger *zapray.Logger, client string, request string) string {
 		return "Hello Go world!"
 	}
 
-	if strings.Contains(request, "panic") {
+	if strings.Contains(hit.Path, "panic") {
 		log.Error("Panic!")
-		panic(request)
+		panic(hit.Path)
 	}
 
-	return fmt.Sprintf("Hello Go world at %s from %s", request, client)
+	return fmt.Sprintf("Hello Go world at %s from %s hits: %d", hit.Path, client, hit.Count)
 }

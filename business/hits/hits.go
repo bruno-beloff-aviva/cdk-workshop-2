@@ -2,7 +2,7 @@ package hits
 
 type Hits struct {
 	Path  string `dynamodbav:"path"`
-	Count int    `dynamodbav:"count"`
+	Count uint   `dynamodbav:"count"`
 }
 
 func NewHits(path string) Hits {
