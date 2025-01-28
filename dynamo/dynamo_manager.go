@@ -1,3 +1,8 @@
+// To test with a live DynamoDB table, use:
+// assume "bb"
+
+// https://www.youtube.com/watch?v=bLY7-kTsQBM
+
 package dynamo
 
 import (
@@ -13,7 +18,7 @@ import (
 )
 
 type DynamoAble interface {
-	GetKeys() map[string]interface{}
+	GetKey() map[string]any
 }
 
 type DynamoManager struct {
@@ -29,6 +34,9 @@ func NewDynamoManager(logger *zapray.Logger, cfg aws.Config, tableName string) D
 
 func (m DynamoManager) TableIsAvailable(ctx context.Context) bool {
 	_, err := m.dBClient.DescribeTable(ctx, &dynamodb.DescribeTableInput{TableName: jsii.String(m.tableName)})
+
+	// m.logger.Error("TableIsAvailable: ", zap.Any("err", err))
+
 	return err == nil
 }
 
@@ -41,7 +49,7 @@ func (m DynamoManager) Get(ctx context.Context, object DynamoAble) error {
 	m.logger.Debug("Get: ", zap.Any("response", response))
 
 	if err != nil {
-		m.logger.Error("GetItem: ", zap.Any("key", object.GetKeys()), zap.Error(err))
+		m.logger.Error("GetItem: ", zap.Any("key", object.GetKey()), zap.Error(err))
 	} else {
 		err = attributevalue.UnmarshalMap(response.Item, &object)
 		if err != nil {
@@ -69,18 +77,26 @@ func (m DynamoManager) Insert(ctx context.Context, object DynamoAble) error {
 	return err
 }
 
-func getDBKey(object DynamoAble) map[string]types.AttributeValue {
-	var dbKey = make(map[string]types.AttributeValue)
+func keyMap(objectKey map[string]any, marshal func(any) types.AttributeValue) map[string]types.AttributeValue {
+	dBKey := make(map[string]types.AttributeValue, len(objectKey))
 
-	for key, value := range object.GetKeys() {
-		attrValue, err := attributevalue.Marshal(value)
-
-		if err != nil {
-			panic(err)
-		}
-
-		dbKey[key] = attrValue
+	for key, value := range objectKey {
+		dBKey[key] = marshal(value)
 	}
 
-	return dbKey
+	return dBKey
+}
+
+func keyMarshal(objectValue any) types.AttributeValue {
+	dBValue, err := attributevalue.Marshal(objectValue)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return dBValue
+}
+
+func getDBKey(object DynamoAble) map[string]types.AttributeValue {
+	return keyMap(object.GetKey(), keyMarshal)
 }

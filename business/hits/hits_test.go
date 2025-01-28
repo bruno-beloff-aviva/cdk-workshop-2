@@ -24,11 +24,11 @@ func TestInc(t *testing.T) {
 	assert.Equal(t, hit.Count, uint(1))
 }
 
-func TestGetKeys(t *testing.T) {
+func TestGetKey(t *testing.T) {
 	hit := NewHits("/test")
-	keys := hit.GetKeys()
-	expected := map[string]interface{}(map[string]interface{}{"path": "/test"})
-	fmt.Printf("keys: %#v\n", keys)
+	keys := hit.GetKey()
+	expected := map[string]any(map[string]any{"path": "/test"})
+	fmt.Printf("key: %#v\n", keys)
 
 	assert.Equal(t, keys, expected)
 }
