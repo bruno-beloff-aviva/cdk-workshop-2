@@ -1,5 +1,8 @@
-// https://github.com/awsdocs/aws-doc-sdk-examples/blob/main/gov2/s3/actions/bucket_basics.go#L200
+// https://github.com/awsdocs/aws-doc-sdk-examples/blob/main/gov2/s3/actions/bucket_basics.go
 // https://github.com/aws/aws-sdk-go/issues/1837
+
+// https://stackoverflow.com/questions/45405434/dynamodb-dynamic-atomic-update-of-mapped-values-with-aws-lambda-nodejs-runtime
+// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html#WorkingWithItems.ConditionalUpdate
 
 package s3_manager
 
@@ -7,12 +10,10 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/aws/smithy-go"
 	"github.com/joerdav/zapray"
 	"go.uber.org/zap"
 )
@@ -30,25 +31,16 @@ func NewS3Manager(logger *zapray.Logger, cfg aws.Config, bucketName string) S3Ma
 	return S3Manager{logger: logger, s3Client: s3Client, bucketName: bucketName}
 }
 
-func (m S3Manager) BucketExists(ctx context.Context) (bool, error) {
+func (m S3Manager) BucketIsAvailable(ctx context.Context) bool {
 	_, err := m.s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: aws.String(m.bucketName),
 	})
-	exists := true
+
 	if err != nil {
-		var apiError smithy.APIError
-		if errors.As(err, &apiError) {
-			switch apiError.(type) {
-			case *types.NotFound:
-				exists = false
-				err = nil
-			default:
-				m.logger.Error("BucketExists: ", zap.Any("bucketName", m.bucketName), zap.Any("err", err))
-			}
-		}
+		m.logger.Error("BucketIsAvailable: ", zap.Any("bucketName", m.bucketName), zap.Any("err", err))
 	}
 
-	return exists, err
+	return err == nil
 }
 
 func (m S3Manager) GetFileContents(ctx context.Context, objectKey string) (string, error) {
@@ -60,11 +52,9 @@ func (m S3Manager) GetFileContents(ctx context.Context, objectKey string) (strin
 	if err != nil {
 		var noKey *types.NoSuchKey
 		if errors.As(err, &noKey) {
-			log.Printf("Can't get object %s from bucket %s. No such key exists.\n", objectKey, m.bucketName)
 			err = noKey
-		} else {
-			log.Printf("Couldn't get object %v:%v. Here's why: %v\n", m.bucketName, objectKey, err)
 		}
+		m.logger.Error("GetFileContents: ", zap.Any("objectKey", objectKey), zap.Any("err", err))
 		return "", err
 	}
 

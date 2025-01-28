@@ -9,7 +9,7 @@ import (
 
 func TestNew(t *testing.T) {
 	hit := NewHits("/test")
-	fmt.Printf("Hit: %#v\n", hit)
+	fmt.Println(hit.String())
 
 	assert.Equal(t, hit.Path, "/test")
 	assert.Equal(t, hit.Count, uint(0))
@@ -18,7 +18,7 @@ func TestNew(t *testing.T) {
 func TestInc(t *testing.T) {
 	hit := NewHits("/test")
 	hit.Increment()
-	fmt.Printf("Hit: %#v\n", hit)
+	fmt.Println(hit.String())
 
 	assert.Equal(t, hit.Path, "/test")
 	assert.Equal(t, hit.Count, uint(1))

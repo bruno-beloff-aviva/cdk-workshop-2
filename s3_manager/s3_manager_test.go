@@ -33,8 +33,8 @@ func TestBucketIsAvailable(t *testing.T) {
 
 	s3Manager := NewS3Manager(logger, cfg, bucketName)
 
-	exists, err := s3Manager.BucketExists(ctx)
-	logger.Info("TestBucketIsAvailable: ", zap.Any("exists", exists), zap.Any("err", err))
+	is_available := s3Manager.BucketIsAvailable(ctx)
+	logger.Info("TestBucketIsAvailable: ", zap.Any("is_available", is_available))
 }
 
 func TestGetFileContents(t *testing.T) {

@@ -1,3 +1,7 @@
+// https://stackoverflow.com/questions/45405434/dynamodb-dynamic-atomic-update-of-mapped-values-with-aws-lambda-nodejs-runtime
+// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html#WorkingWithItems.ConditionalUpdate
+// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html
+
 // To test with a live DynamoDB table, use:
 // assume "bb"
 
@@ -27,15 +31,21 @@ type DynamoManager struct {
 	tableName string
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewDynamoManager(logger *zapray.Logger, cfg aws.Config, tableName string) DynamoManager {
 	dBClient := dynamodb.NewFromConfig(cfg)
 	return DynamoManager{logger: logger, dBClient: dBClient, tableName: tableName}
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func (m DynamoManager) TableIsAvailable(ctx context.Context) bool {
 	_, err := m.dBClient.DescribeTable(ctx, &dynamodb.DescribeTableInput{TableName: jsii.String(m.tableName)})
 
-	// m.logger.Error("TableIsAvailable: ", zap.Any("err", err))
+	if err != nil {
+		m.logger.Error("TableIsAvailable: ", zap.Any("tableName", m.tableName), zap.Any("err", err))
+	}
 
 	return err == nil
 }
@@ -61,7 +71,7 @@ func (m DynamoManager) Get(ctx context.Context, object DynamoAble) error {
 	return err
 }
 
-func (m DynamoManager) Insert(ctx context.Context, object DynamoAble) error {
+func (m DynamoManager) Put(ctx context.Context, object DynamoAble) error {
 	m.logger.Debug("Insert: ", zap.Any("object", object), zap.Any("key", getDBKey(object)))
 
 	item, err := attributevalue.MarshalMap(object)
@@ -76,6 +86,8 @@ func (m DynamoManager) Insert(ctx context.Context, object DynamoAble) error {
 	}
 	return err
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func keyMap(objectKey map[string]any, marshal func(any) types.AttributeValue) map[string]types.AttributeValue {
 	dBKey := make(map[string]types.AttributeValue, len(objectKey))

@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awslogs"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	awslambdago "github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,7 +21,9 @@ import (
 	"github.com/aws/jsii-runtime-go"
 )
 
-const Project = "CDK2"
+const project = "CDK2"
+const bucketName = "cdk2-hello-bucket"
+const objectName = "hello.txt"
 
 type CdkWorkshopStackProps struct {
 	awscdk.StackProps
@@ -57,12 +60,13 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.Bucket { // using cdk
 }
 
 func NewHelloHandler(stack awscdk.Stack, lambdaEnv map[string]*string) awslambdago.GoFunction {
-	helloHandler := awslambdago.NewGoFunction(stack, aws.String(Project+"HelloHandler"), &awslambdago.GoFunctionProps{
+	helloHandler := awslambdago.NewGoFunction(stack, aws.String(project+"HelloHandler"), &awslambdago.GoFunctionProps{
 		Runtime:       awslambda.Runtime_PROVIDED_AL2(),
 		Architecture:  awslambda.Architecture_ARM_64(),
 		Entry:         aws.String("lambda/hello/"),
 		Timeout:       awscdk.Duration_Seconds(aws.Float64(29)),
 		LoggingFormat: awslambda.LoggingFormat_JSON,
+		LogRetention:  awslogs.RetentionDays_FIVE_DAYS,
 		Environment:   &lambdaEnv,
 	})
 
@@ -82,15 +86,16 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
 	// table...
-	table := NewCdkTable(stack, Project+"HelloHitCounterTable")
+	table := NewCdkTable(stack, project+"HelloHitCounterTable")
 
 	// bucket...
-	bucket := NewHelloBucket(stack, "cdk2-hello-bucket")
+	bucket := NewHelloBucket(stack, bucketName)
 
 	// lambda...
 	lambdaEnv := map[string]*string{
 		"HITS_TABLE_NAME":   table.TableName(),
 		"HELLO_BUCKET_NAME": bucket.BucketName(),
+		"HELLO_OBJECT_NAME": aws.String(objectName),
 	}
 
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
@@ -100,7 +105,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
-	awsapigateway.NewLambdaRestApi(stack, aws.String(Project+"HelloEndpoint"), &restApiProps)
+	awsapigateway.NewLambdaRestApi(stack, aws.String(project+"HelloEndpoint"), &restApiProps)
 
 	return stack
 }
@@ -109,7 +114,7 @@ func main() {
 	defer jsii.Close()
 
 	app := awscdk.NewApp(nil)
-	NewCdkWorkshopStack(app, Project+"WorkshopStack", &CdkWorkshopStackProps{})
+	NewCdkWorkshopStack(app, project+"WorkshopStack", &CdkWorkshopStackProps{})
 
 	app.Synth(nil)
 }

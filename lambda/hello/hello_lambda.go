@@ -21,13 +21,10 @@ import (
 	"go.uber.org/zap"
 )
 
-var tableName string
-var bucketName string
-
 var logger *zapray.Logger
 
-var dbManager dynamo_manager.DynamoManager
-var s3Manager s3_manager.S3Manager
+var hitManager business.HitManager
+var helloManager business.HelloManager
 
 func init() {
 	var err error
@@ -42,12 +39,6 @@ func init() {
 
 	// level := os.Getenv("LOG_LEVEL") // may also be set by ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO
 	// fmt.Println("log level: ", level)
-
-	tableName = os.Getenv("HITS_TABLE_NAME")
-	logger.Info("tableName: " + tableName)
-
-	bucketName = os.Getenv("HELLO_BUCKET_NAME")
-	logger.Info("bucketName: " + bucketName)
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -55,8 +46,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	sourceIP := request.RequestContext.Identity.SourceIP
 
-	hit := business.HitFunction(logger, ctx, dbManager, request.Path)
-	message := business.HelloFunction(logger, ctx, s3Manager, sourceIP, hit)
+	hit := hitManager.HitFunction(ctx, request.Path)
+	message := helloManager.HelloFunction(ctx, sourceIP, hit)
 
 	return response.New200(message), nil
 }
@@ -64,6 +55,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 func main() {
 	logger.Info("*** main")
 
+	//	context...
 	ctx := context.Background() //	context.TODO(), config.WithSharedConfigProfile("bb")
 	cfg, err := config.LoadDefaultConfig(ctx)
 
@@ -71,14 +63,33 @@ func main() {
 		panic("err: " + err.Error())
 	}
 
-	dbManager = dynamo_manager.NewDynamoManager(logger, cfg, tableName)
-	is_available := dbManager.TableIsAvailable(ctx)
+	//	environment...
+	tableName := os.Getenv("HITS_TABLE_NAME")
+	logger.Info("tableName: " + tableName)
 
-	if !is_available {
+	bucketName := os.Getenv("HELLO_BUCKET_NAME")
+	logger.Info("bucketName: " + bucketName)
+
+	objectName := os.Getenv("HELLO_OBJECT_NAME")
+	logger.Info("objectName: " + objectName)
+
+	//	managers...
+	dbManager := dynamo_manager.NewDynamoManager(logger, cfg, tableName)
+	table_is_available := dbManager.TableIsAvailable(ctx)
+
+	if !table_is_available {
 		panic("Table not available: " + tableName)
 	}
 
-	s3Manager = s3_manager.NewS3Manager(logger, cfg, bucketName)
+	s3Manager := s3_manager.NewS3Manager(logger, cfg, bucketName)
+	bucket_is_available := s3Manager.BucketIsAvailable(ctx)
+
+	if !bucket_is_available {
+		panic("Bucket not available: " + bucketName)
+	}
+
+	hitManager = business.NewHitManager(logger, dbManager)
+	helloManager = business.NewHelloManager(logger, s3Manager, objectName)
 
 	lambda.Start(handler)
 }
