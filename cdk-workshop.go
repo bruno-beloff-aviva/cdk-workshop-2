@@ -1,12 +1,19 @@
 // cdk deploy --profile bb
 
+// https://github.com/aviva-verde/cdk-standards.git
+// https://docs.aws.amazon.com/cdk/v2/guide/resources.html
+
 package main
 
 import (
+	"fmt"
+
+	"github.com/aviva-verde/cdk-standards/s3"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	awslambdago "github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/constructs-go/constructs/v10"
@@ -19,11 +26,6 @@ type CdkWorkshopStackProps struct {
 	awscdk.StackProps
 }
 
-type HelloCounterProps struct {
-	// Downstream is the function for which we want to count hits
-	Downstream awslambda.IFunction
-}
-
 func NewCdkTable(scope constructs.Construct, id string) awsdynamodb.Table {
 	this := constructs.NewConstruct(scope, &id)
 
@@ -34,11 +36,27 @@ func NewCdkTable(scope constructs.Construct, id string) awsdynamodb.Table {
 	return table
 }
 
-func NewHelloHandler(stack awscdk.Stack, table awsdynamodb.Table) awslambdago.GoFunction {
-	lambdaEnv := map[string]*string{
-		"HITS_TABLE_NAME": table.TableName(),
+func NewHelloBucket(stack awscdk.Stack, name string) awss3.Bucket { // using cdk-standards
+	logConfig := s3.BucketLogConfiguration{
+		BucketName: name,
+		LogPrefix:  "HelloLogPrefix",
 	}
 
+	props := s3.BucketProps{
+		Stack:              stack,
+		Name:               name + "-props",
+		OverrideBucketName: aws.String(name),
+		Versioned:          false,
+		EventBridgeEnabled: false,
+		LogConfiguration:   logConfig,
+	}
+
+	fmt.Printf("props: %#v\n", props)
+
+	return s3.NewPrivateS3Bucket(props)
+}
+
+func NewHelloHandler(stack awscdk.Stack, lambdaEnv map[string]*string) awslambdago.GoFunction {
 	helloHandler := awslambdago.NewGoFunction(stack, aws.String(Project+"HelloHandler"), &awslambdago.GoFunctionProps{
 		Runtime:       awslambda.Runtime_PROVIDED_AL2(),
 		Architecture:  awslambda.Architecture_ARM_64(),
@@ -66,9 +84,19 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	// table...
 	table := NewCdkTable(stack, Project+"HelloHitCounterTable")
 
-	// hello lambda...
-	helloHandler := NewHelloHandler(stack, table)
+	// bucket...
+	bucket := NewHelloBucket(stack, "cdk2-hello-bucket")
+
+	// lambda...
+	lambdaEnv := map[string]*string{
+		"HITS_TABLE_NAME":   table.TableName(),
+		"HELLO_BUCKET_NAME": bucket.BucketName(),
+	}
+
+	helloHandler := NewHelloHandler(stack, lambdaEnv)
+
 	table.GrantReadWriteData(helloHandler)
+	bucket.GrantRead(helloHandler, nil)
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
@@ -81,7 +109,6 @@ func main() {
 	defer jsii.Close()
 
 	app := awscdk.NewApp(nil)
-
 	NewCdkWorkshopStack(app, Project+"WorkshopStack", &CdkWorkshopStackProps{})
 
 	app.Synth(nil)

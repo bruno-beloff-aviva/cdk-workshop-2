@@ -2,29 +2,35 @@ package business
 
 import (
 	"cdk-workshop-2/business/hits"
+	"cdk-workshop-2/s3_manager"
+	"context"
 
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/joerdav/zapray"
-	"github.com/labstack/gommon/log"
 	"go.uber.org/zap"
 )
 
-func Hello(logger *zapray.Logger, client string, hit hits.Hits) string {
-	logger.Info("Hello", zap.String("client", client), zap.String("path", hit.Path))
+func HelloFunction(logger *zapray.Logger, ctx context.Context, s3Manager s3_manager.S3Manager, client string, hit hits.Hits) string {
+	logger.Info("HelloFunction", zap.String("client", client), zap.String("path", hit.Path))
 
-	time.Sleep(1 * time.Second)
+	// time.Sleep(1 * time.Second)
 
 	if client == "" {
 		return "Hello Go world!"
 	}
 
+	message, err := s3Manager.GetFileContents(ctx, "hello.txt")
+
+	if err != nil {
+		panic("HelloFunction: failed to get file contents: " + err.Error())
+	}
+
 	if strings.Contains(hit.Path, "panic") {
-		log.Error("Panic!")
+		logger.Error("Panic!")
 		panic(hit.Path)
 	}
 
-	return fmt.Sprintf("Hello Go world at %s from %s hits: %d", hit.Path, client, hit.Count)
+	return fmt.Sprintf("%s\nHello Go world at %s from %s hits: %d", message, hit.Path, client, hit.Count)
 }

@@ -1,4 +1,4 @@
-package dynamo
+package dynamo_manager
 
 import (
 	"cdk-workshop-2/business/hits"

@@ -3,7 +3,7 @@
 
 // https://www.youtube.com/watch?v=bLY7-kTsQBM
 
-package dynamo
+package dynamo_manager
 
 import (
 	"context"

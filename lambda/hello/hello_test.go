@@ -1,8 +1,6 @@
 package main
 
 import (
-	"cdk-workshop-2/business"
-	"cdk-workshop-2/business/hits"
 	"fmt"
 	"log"
 	"testing"
@@ -26,8 +24,10 @@ func init() {
 
 func MainRunner(sourceIP string, path string) string {
 	log.Println("sourceIP: ", sourceIP, "path: ", path)
-	hit := hits.NewHits(path)
-	return business.Hello(testLogger, sourceIP, hit)
+	// hit := hits.NewHits(path)
+	// testLogger.Info(string(hit))
+	// return business.HelloFunction(testLogger, nil, sourceIP, hit)
+	return "Hello Go world!"
 }
 
 var tests = []struct {

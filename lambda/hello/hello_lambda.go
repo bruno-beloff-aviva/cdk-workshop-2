@@ -6,8 +6,9 @@ package main
 
 import (
 	"cdk-workshop-2/business"
-	"cdk-workshop-2/dynamo"
+	"cdk-workshop-2/dynamo_manager"
 	"cdk-workshop-2/lambda/response"
+	"cdk-workshop-2/s3_manager"
 	"fmt"
 
 	"context"
@@ -21,8 +22,12 @@ import (
 )
 
 var tableName string
+var bucketName string
+
 var logger *zapray.Logger
-var dbManager dynamo.DynamoManager
+
+var dbManager dynamo_manager.DynamoManager
+var s3Manager s3_manager.S3Manager
 
 func init() {
 	var err error
@@ -39,7 +44,10 @@ func init() {
 	// fmt.Println("log level: ", level)
 
 	tableName = os.Getenv("HITS_TABLE_NAME")
-	logger.Info("TableName: " + tableName)
+	logger.Info("tableName: " + tableName)
+
+	bucketName = os.Getenv("HELLO_BUCKET_NAME")
+	logger.Info("bucketName: " + bucketName)
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -47,8 +55,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	sourceIP := request.RequestContext.Identity.SourceIP
 
-	hit := business.Hit(logger, ctx, dbManager, request.Path)
-	message := business.Hello(logger, sourceIP, hit)
+	hit := business.HitFunction(logger, ctx, dbManager, request.Path)
+	message := business.HelloFunction(logger, ctx, s3Manager, sourceIP, hit)
 
 	return response.New200(message), nil
 }
@@ -63,12 +71,14 @@ func main() {
 		panic("err: " + err.Error())
 	}
 
-	dbManager = dynamo.NewDynamoManager(logger, cfg, tableName)
+	dbManager = dynamo_manager.NewDynamoManager(logger, cfg, tableName)
 	is_available := dbManager.TableIsAvailable(ctx)
 
 	if !is_available {
 		panic("Table not available: " + tableName)
 	}
+
+	s3Manager = s3_manager.NewS3Manager(logger, cfg, bucketName)
 
 	lambda.Start(handler)
 }
