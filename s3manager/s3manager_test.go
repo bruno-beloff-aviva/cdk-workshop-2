@@ -1,7 +1,10 @@
+// https://stackoverflow.com/questions/24030059/skip-some-tests-with-go-test
+
 package s3manager
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -24,7 +27,15 @@ func init() {
 	}
 }
 
+func skipCI(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping testing in CI environment")
+	}
+}
+
 func TestBucketIsAvailable(t *testing.T) {
+	skipCI(t)
+
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)
 
@@ -41,6 +52,8 @@ func TestBucketIsAvailable(t *testing.T) {
 }
 
 func TestGetFileContents(t *testing.T) {
+	skipCI(t)
+
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)
 

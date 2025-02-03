@@ -1,9 +1,12 @@
+// https://stackoverflow.com/questions/24030059/skip-some-tests-with-go-test
+
 package dynamomanager
 
 import (
 	"cdk-workshop-2/business/hits"
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -25,6 +28,12 @@ func init() {
 	}
 }
 
+func skipCI(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping testing in CI environment")
+	}
+}
+
 func TestGetDBKey(t *testing.T) {
 	path := "/test"
 
@@ -41,6 +50,8 @@ func TestGetDBKey(t *testing.T) {
 }
 
 func TestTableIsAvailable(t *testing.T) {
+	skipCI(t)
+
 	ctx := context.Background() //	context.TODO(), config.WithSharedConfigProfile("bb")
 	cfg, err := config.LoadDefaultConfig(ctx)
 
