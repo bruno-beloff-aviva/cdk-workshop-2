@@ -1,4 +1,4 @@
-package s3_manager
+package s3manager
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/joerdav/zapray"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +17,7 @@ var logger *zapray.Logger
 
 func init() {
 	var err error
-	logger, err = zapray.NewProduction() //	.NewDevelopment()
+	logger, err = zapray.NewDevelopment()
 
 	if err != nil {
 		panic("failed to create logger: " + err.Error())
@@ -33,8 +34,10 @@ func TestBucketIsAvailable(t *testing.T) {
 
 	s3Manager := NewS3Manager(logger, cfg, bucketName)
 
-	is_available := s3Manager.BucketIsAvailable(ctx)
-	logger.Info("TestBucketIsAvailable: ", zap.Any("is_available", is_available))
+	isAvailable := s3Manager.BucketIsAvailable(ctx)
+	logger.Info("TestBucketIsAvailable: ", zap.Any("isAvailable", isAvailable))
+
+	assert.Equal(t, isAvailable, true)
 }
 
 func TestGetFileContents(t *testing.T) {
@@ -49,4 +52,6 @@ func TestGetFileContents(t *testing.T) {
 
 	body, err := s3Manager.GetFileContents(ctx, objectName)
 	logger.Info("TestGetFileContents: ", zap.Any("body", body), zap.Any("err", err))
+
+	assert.Equal(t, body, "April is the cruellest month, breeding\nLilacs out of the dead land, mixing\nMemory and desire, stirring\nDull roots with spring rain.\nWinter kept us warm, covering\nEarth in forgetful snow, feeding\nA little life with dried tubers.\n")
 }

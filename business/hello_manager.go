@@ -14,11 +14,11 @@ import (
 
 type HelloManager struct {
 	logger     *zapray.Logger
-	s3Manager  s3_manager.S3Manager
+	s3Manager  s3manager.S3Manager
 	objectName string
 }
 
-func NewHelloManager(logger *zapray.Logger, s3Manager s3_manager.S3Manager, objectName string) HelloManager {
+func NewHelloManager(logger *zapray.Logger, s3Manager s3manager.S3Manager, objectName string) HelloManager {
 	return HelloManager{logger: logger, s3Manager: s3Manager, objectName: objectName}
 }
 

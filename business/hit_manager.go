@@ -11,10 +11,10 @@ import (
 
 type HitManager struct {
 	logger    *zapray.Logger
-	dbManager dynamo_manager.DynamoManager
+	dbManager dynamomanager.DynamoManager
 }
 
-func NewHitManager(logger *zapray.Logger, dbManager dynamo_manager.DynamoManager) HitManager {
+func NewHitManager(logger *zapray.Logger, dbManager dynamomanager.DynamoManager) HitManager {
 	return HitManager{logger: logger, dbManager: dbManager}
 }
 

@@ -5,12 +5,12 @@
 package main
 
 import (
+	"fmt"
+
 	"cdk-workshop-2/business"
 	"cdk-workshop-2/dynamomanager"
 	"cdk-workshop-2/lambda/response"
 	"cdk-workshop-2/s3manager"
-	"fmt"
-
 	"context"
 	"os"
 
@@ -26,21 +26,6 @@ var logger *zapray.Logger
 var hitManager business.HitManager
 var helloManager business.HelloManager
 
-func init() {
-	var err error
-	logger, err = zapray.NewProduction() //	.NewDevelopment()
-
-	if err != nil {
-		panic("failed to create logger: " + err.Error())
-	}
-	logger.Info("*** init")
-
-	// logger.Info("logger level: " + logger.Level().String())
-
-	// level := os.Getenv("LOG_LEVEL") // may also be set by ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO
-	// fmt.Println("log level: ", level)
-}
-
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	logger.Info("handler: ", zap.String("request", fmt.Sprintf("%v", request)))
 
@@ -53,6 +38,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 }
 
 func main() {
+	var err error
+	logger, err = zapray.NewDevelopment()
+
+	if err != nil {
+		panic("failed to create logger: " + err.Error())
+	}
 	logger.Info("*** main")
 
 	//	context...
@@ -74,14 +65,14 @@ func main() {
 	logger.Info("objectName: " + objectName)
 
 	//	managers...
-	dbManager := dynamo_manager.NewDynamoManager(logger, cfg, tableName)
-	table_is_available := dbManager.TableIsAvailable(ctx)
+	dbManager := dynamomanager.NewDynamoManager(logger, cfg, tableName)
+	tableIsAvailable := dbManager.TableIsAvailable(ctx)
 
-	if !table_is_available {
+	if !tableIsAvailable {
 		panic("Table not available: " + tableName)
 	}
 
-	s3Manager := s3_manager.NewS3Manager(logger, cfg, bucketName)
+	s3Manager := s3manager.NewS3Manager(logger, cfg, bucketName)
 	bucket_is_available := s3Manager.BucketIsAvailable(ctx)
 
 	if !bucket_is_available {
