@@ -2,7 +2,7 @@ package business
 
 import (
 	"cdk-workshop-2/business/hits"
-	"cdk-workshop-2/s3_manager"
+	"cdk-workshop-2/s3manager"
 	"context"
 
 	"fmt"

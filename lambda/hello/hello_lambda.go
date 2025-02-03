@@ -6,9 +6,9 @@ package main
 
 import (
 	"cdk-workshop-2/business"
-	"cdk-workshop-2/dynamo_manager"
+	"cdk-workshop-2/dynamomanager"
 	"cdk-workshop-2/lambda/response"
-	"cdk-workshop-2/s3_manager"
+	"cdk-workshop-2/s3manager"
 	"fmt"
 
 	"context"

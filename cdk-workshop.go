@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslogs"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsopensearchservice"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	awslambdago "github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
 	"github.com/aws/aws-sdk-go/aws"
@@ -82,6 +83,10 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 		sprops = props.StackProps
 	}
 
+	searcher := awsopensearchservice.NewDomain(scope, aws.String("HelloSearchDomain"), &awsopensearchservice.DomainProps{
+		DomainName: aws.String("hello-search"),
+	})
+
 	//	stack...
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
@@ -102,6 +107,8 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 
 	table.GrantReadWriteData(helloHandler)
 	bucket.GrantRead(helloHandler, nil)
+
+	searcher.GrantReadWrite(helloHandler)
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}

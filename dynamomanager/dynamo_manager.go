@@ -31,8 +31,6 @@ type DynamoManager struct {
 	tableName string
 }
 
-// --------------------------------------------------------------------------------------------------------------------
-
 func NewDynamoManager(logger *zapray.Logger, cfg aws.Config, tableName string) DynamoManager {
 	dBClient := dynamodb.NewFromConfig(cfg)
 	return DynamoManager{logger: logger, dBClient: dBClient, tableName: tableName}
@@ -51,11 +49,14 @@ func (m DynamoManager) TableIsAvailable(ctx context.Context) bool {
 }
 
 func (m DynamoManager) Get(ctx context.Context, object DynamoAble) error {
-	m.logger.Debug("Get: ", zap.Any("key", getDBKey(object)))
+	m.logger.Debug("Get: ", zap.Any("key", object.GetKey()))
 
-	response, err := m.dBClient.GetItem(ctx, &dynamodb.GetItemInput{
-		Key: getDBKey(object), TableName: jsii.String(m.tableName),
-	})
+	params := dynamodb.GetItemInput{
+		Key:       getDBKey(object),
+		TableName: jsii.String(m.tableName),
+	}
+
+	response, err := m.dBClient.GetItem(ctx, &params)
 	m.logger.Debug("Get: ", zap.Any("response", response))
 
 	if err != nil {
@@ -72,15 +73,19 @@ func (m DynamoManager) Get(ctx context.Context, object DynamoAble) error {
 }
 
 func (m DynamoManager) Put(ctx context.Context, object DynamoAble) error {
-	m.logger.Debug("Insert: ", zap.Any("object", object), zap.Any("key", getDBKey(object)))
+	m.logger.Debug("Insert: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
 
 	item, err := attributevalue.MarshalMap(object)
 	if err != nil {
 		panic(err)
 	}
-	_, err = m.dBClient.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: jsii.String(m.tableName), Item: item,
-	})
+
+	params := dynamodb.PutItemInput{
+		TableName: jsii.String(m.tableName),
+		Item:      item,
+	}
+
+	_, err = m.dBClient.PutItem(ctx, &params)
 	if err != nil {
 		m.logger.Error("PutItem: ", zap.Error(err))
 	}
