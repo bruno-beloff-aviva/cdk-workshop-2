@@ -100,6 +100,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 		"HITS_TABLE_NAME":   table.TableName(),
 		"HELLO_BUCKET_NAME": bucket.BucketName(),
 		"HELLO_OBJECT_NAME": aws.String(objectName),
+		"HELLO_VERSION":     aws.String("0.1.0"),
 	}
 
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
