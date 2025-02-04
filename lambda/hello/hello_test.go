@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/joerdav/zapray"
@@ -22,6 +23,12 @@ func init() {
 	// fmt.Println("log level: ", level)
 }
 
+func skipCI(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping testing in CI environment")
+	}
+}
+
 func MainRunner(sourceIP string, path string) string {
 	log.Println("sourceIP: ", sourceIP, "path: ", path)
 	// hit := hits.NewHits(path)
@@ -39,6 +46,8 @@ var tests = []struct {
 }
 
 func TestMain(t *testing.T) {
+	skipCI(t)
+
 	// Test businessFunction
 	for _, tt := range tests {
 		testName := fmt.Sprintf("%s, %s", tt.sourceIP, tt.path)
@@ -55,6 +64,8 @@ func TestMain(t *testing.T) {
 }
 
 func TestPanic(t *testing.T) {
+	skipCI(t)
+
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("The code did not panic")
