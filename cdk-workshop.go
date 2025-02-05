@@ -107,7 +107,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	var bucket awss3.IBucket
 
 	bucket = awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
-	fmt.Printf("*** existing bucket: %#v\n", bucket)
+	fmt.Printf("*** existing bucket: %#v\n", bucket.BucketName())
 
 	if bucket == nil {
 		bucket = NewHelloBucket(stack, bucketName)
@@ -120,7 +120,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	var table awsdynamodb.ITable
 
 	table = awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
-	fmt.Printf("existing table: %#v\n", table)
+	fmt.Printf("*** existing table: %#v\n", table.TableName())
 
 	if table == nil {
 		table = NewCdkTable(stack, tableName)
