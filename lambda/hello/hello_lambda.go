@@ -21,35 +21,41 @@ import (
 	"go.uber.org/zap"
 )
 
-var logger *zapray.Logger
+type HelloHandler struct {
+	logger       *zapray.Logger
+	helloManager business.HelloManager
+	hitManager   business.HitManager
+}
 
-var hitManager business.HitManager
-var helloManager business.HelloManager
+func NewHelloHandler(logger *zapray.Logger, helloManager business.HelloManager, hitManager business.HitManager) HelloHandler {
+	return HelloHandler{
+		logger:       logger,
+		helloManager: helloManager,
+		hitManager:   hitManager,
+	}
+}
 
-// TODO: handler needs its own struct
-
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	logger.Info("handler: ", zap.String("request", fmt.Sprintf("%v", request)))
+func (h HelloHandler) Handle(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	h.logger.Info("Handle: ", zap.String("request", fmt.Sprintf("%v", request)))
 
 	sourceIP := request.RequestContext.Identity.SourceIP
 
-	hit := hitManager.HitFunction(ctx, request.Path)
-	message := helloManager.HelloFunction(ctx, sourceIP, hit)
+	hit := h.hitManager.HitFunction(ctx, request.Path)
+	message := h.helloManager.HelloFunction(ctx, sourceIP, hit)
 
 	return response.New200(message), nil
 }
 
 func main() {
-	var err error
-	logger, err = zapray.NewDevelopment()
+	logger, err1 := zapray.NewDevelopment()
 
-	if err != nil {
-		panic("failed to create logger: " + err.Error())
+	if err1 != nil {
+		panic("failed to create logger: " + err1.Error())
 	}
 	logger.Info("*** main")
 
 	//	context...
-	ctx := context.Background() //	context.TODO(), config.WithSharedConfigProfile("bb")
+	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)
 
 	if err != nil {
@@ -81,8 +87,10 @@ func main() {
 		panic("Bucket not available: " + bucketName)
 	}
 
-	hitManager = business.NewHitManager(logger, dbManager)
-	helloManager = business.NewHelloManager(logger, s3Manager, objectName)
+	hitManager := business.NewHitManager(logger, dbManager)
+	helloManager := business.NewHelloManager(logger, s3Manager, objectName)
 
-	lambda.Start(handler)
+	handler := NewHelloHandler(logger, helloManager, hitManager)
+
+	lambda.Start(handler.Handle)
 }
