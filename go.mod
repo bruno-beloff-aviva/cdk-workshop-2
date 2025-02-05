@@ -39,7 +39,6 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1 // indirect
-	github.com/aviva-verde/cdk-standards v1.19.6
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/aws/aws-sdk-go-v2 v1.34.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.54 // indirect
