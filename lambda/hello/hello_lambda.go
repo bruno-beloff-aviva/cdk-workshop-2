@@ -26,6 +26,8 @@ var logger *zapray.Logger
 var hitManager business.HitManager
 var helloManager business.HelloManager
 
+// TODO: handler needs its own struct
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	logger.Info("handler: ", zap.String("request", fmt.Sprintf("%v", request)))
 

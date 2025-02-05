@@ -8,6 +8,7 @@ package main
 import (
 	s3 "cdk-workshop-2/s3aviva"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
@@ -22,8 +23,13 @@ import (
 )
 
 const project = "CDK2"
-const bucketName = "cdk2-hello-bucket"
+const version = "0.1.2"
+
+var bucketName = strings.ToLower(project) + "-hello-bucket"
+
 const objectName = "hello.txt"
+const tableName = project + "HelloHitCounterTable"
+const endpointName = project + "HelloEndpoint"
 
 type CdkWorkshopStackProps struct {
 	awscdk.StackProps
@@ -89,8 +95,15 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	//	stack...
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// table...
-	table := NewCdkTable(stack, project+"HelloHitCounterTable")
+	// lambda...
+	lambdaEnv := map[string]*string{
+		"HITS_TABLE_NAME":   aws.String(tableName),
+		"HELLO_BUCKET_NAME": aws.String(bucketName),
+		"HELLO_OBJECT_NAME": aws.String(objectName),
+		"HELLO_VERSION":     aws.String(version),
+	}
+
+	helloHandler := NewHelloHandler(stack, lambdaEnv)
 
 	// bucket...
 	var bucket awss3.Bucket
@@ -98,31 +111,25 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	existing_bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
 	fmt.Printf("existing_bucket: %#v\n", existing_bucket)
 
-	if existing_bucket != nil {
+	if existing_bucket == nil {
 		bucket = NewHelloBucket(stack, bucketName)
-	}
-
-	// lambda...
-	lambdaEnv := map[string]*string{
-		"HITS_TABLE_NAME":   table.TableName(),
-		"HELLO_BUCKET_NAME": bucket.BucketName(),
-		"HELLO_OBJECT_NAME": aws.String(objectName),
-		"HELLO_VERSION":     aws.String("0.1.1"),
-	}
-
-	helloHandler := NewHelloHandler(stack, lambdaEnv)
-
-	table.GrantReadWriteData(helloHandler)
-
-	if existing_bucket != nil {
 		bucket.GrantRead(helloHandler, nil)
 	}
 
-	// searcher.GrantReadWrite(helloHandler)
+	// table...
+	var table awsdynamodb.Table
+
+	existing_table := awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
+	fmt.Printf("existing_table: %#v\n", existing_table)
+
+	if existing_table == nil {
+		table = NewCdkTable(stack, tableName)
+		table.GrantReadWriteData(helloHandler)
+	}
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
-	awsapigateway.NewLambdaRestApi(stack, aws.String(project+"HelloEndpoint"), &restApiProps)
+	awsapigateway.NewLambdaRestApi(stack, aws.String(endpointName), &restApiProps)
 
 	return stack
 }
