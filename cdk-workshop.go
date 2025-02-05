@@ -97,8 +97,6 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 
 	// lambda...
 	lambdaEnv := map[string]*string{
-		"HITS_TABLE_NAME":   aws.String(tableName),
-		"HELLO_BUCKET_NAME": aws.String(bucketName),
 		"HELLO_OBJECT_NAME": aws.String(objectName),
 		"HELLO_VERSION":     aws.String(version),
 	}
@@ -106,26 +104,30 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
 
 	// bucket...
-	var bucket awss3.Bucket
+	var bucket awss3.IBucket
 
-	existing_bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
-	fmt.Printf("existing_bucket: %#v\n", existing_bucket)
+	bucket = awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
+	fmt.Printf("*** existing bucket: %#v\n", bucket)
 
-	if existing_bucket == nil {
+	if bucket == nil {
 		bucket = NewHelloBucket(stack, bucketName)
-		bucket.GrantRead(helloHandler, nil)
 	}
+
+	bucket.GrantRead(helloHandler, nil)
+	lambdaEnv["HELLO_BUCKET_NAME"] = bucket.BucketName()
 
 	// table...
-	var table awsdynamodb.Table
+	var table awsdynamodb.ITable
 
-	existing_table := awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
-	fmt.Printf("existing_table: %#v\n", existing_table)
+	table = awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
+	fmt.Printf("existing table: %#v\n", table)
 
-	if existing_table == nil {
+	if table == nil {
 		table = NewCdkTable(stack, tableName)
-		table.GrantReadWriteData(helloHandler)
 	}
+
+	table.GrantReadWriteData(helloHandler)
+	lambdaEnv["HITS_TABLE_NAME"] = table.TableName()
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
