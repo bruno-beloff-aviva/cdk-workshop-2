@@ -22,7 +22,8 @@ import (
 )
 
 const project = "CDK2"
-const version = "0.1.2"
+const version = "0.1.3"
+const region = "eu-west-2"
 
 var bucketName = strings.ToLower(project) + "-hello-bucket"
 
@@ -54,6 +55,7 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 
 	logConfig := s3.BucketLogConfiguration{
 		BucketName: name,
+		Region:     region,
 		LogPrefix:  "HelloLogPrefix",
 	}
 
