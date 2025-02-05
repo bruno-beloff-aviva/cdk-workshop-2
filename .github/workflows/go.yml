@@ -1,6 +1,8 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
+# https://www.youtube.com/watch?v=IvxWDFb-fSs
+
 name: Go
 
 on:
@@ -11,23 +13,41 @@ on:
 
 jobs:
 
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
-    steps:
-    - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-    - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-    - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-    - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
 
-    - uses: actions/checkout@v4
+    permissions: 
+      contents: read
+      pull-requests: read
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
 
-    - name: Build
-      run: go build -v ./...
+    - name: Install AWS Lambda Tools
+      run: go get -u github.com/aws/aws-lambda-go/cmd/build-lambda-zip
 
-    - name: Test
-      run: go test -v ./...
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install AWS CDK
+      run: npm install -g aws-cdk
+
+    # Package API (dotnet)
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-2
+        
+    - name: CDK Deploy
+      run: cdk deploy --all --require-approval never
