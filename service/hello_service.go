@@ -1,8 +1,8 @@
-package business
+package service
 
 import (
-	"cdk-workshop-2/business/hits"
 	"cdk-workshop-2/s3manager"
+	"cdk-workshop-2/service/hits"
 	"context"
 
 	"fmt"
@@ -12,17 +12,17 @@ import (
 	"go.uber.org/zap"
 )
 
-type HelloManager struct {
+type HelloService struct {
 	logger     *zapray.Logger
 	s3Manager  s3manager.S3Manager
 	objectName string
 }
 
-func NewHelloManager(logger *zapray.Logger, s3Manager s3manager.S3Manager, objectName string) HelloManager {
-	return HelloManager{logger: logger, s3Manager: s3Manager, objectName: objectName}
+func NewHelloService(logger *zapray.Logger, s3Manager s3manager.S3Manager, objectName string) HelloService {
+	return HelloService{logger: logger, s3Manager: s3Manager, objectName: objectName}
 }
 
-func (m HelloManager) HelloFunction(ctx context.Context, client string, hits hits.Hits) string {
+func (m HelloService) HelloFunction(ctx context.Context, client string, hits hits.Hits) string {
 	m.logger.Info("HelloFunction", zap.String("client", client), zap.String("path", hits.Path))
 
 	// time.Sleep(1 * time.Second)

@@ -5,49 +5,20 @@
 package main
 
 import (
-	"fmt"
-
-	"cdk-workshop-2/business"
 	"cdk-workshop-2/dynamomanager"
-	"cdk-workshop-2/lambda/response"
+	"cdk-workshop-2/lambda/hello"
 	"cdk-workshop-2/s3manager"
+	"cdk-workshop-2/service"
 	"context"
 	"os"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/joerdav/zapray"
-	"go.uber.org/zap"
 )
 
-type HelloHandler struct {
-	logger       *zapray.Logger
-	helloManager business.HelloManager
-	hitManager   business.HitManager
-}
-
-func NewHelloHandler(logger *zapray.Logger, helloManager business.HelloManager, hitManager business.HitManager) HelloHandler {
-	return HelloHandler{
-		logger:       logger,
-		helloManager: helloManager,
-		hitManager:   hitManager,
-	}
-}
-
-func (h HelloHandler) Handle(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	h.logger.Info("Handle: ", zap.String("request", fmt.Sprintf("%v", request)))
-
-	sourceIP := request.RequestContext.Identity.SourceIP
-
-	hit := h.hitManager.HitFunction(ctx, request.Path)
-	message := h.helloManager.HelloFunction(ctx, sourceIP, hit)
-
-	return response.New200(message), nil
-}
-
 func main() {
-	logger, err1 := zapray.NewDevelopment()
+	logger, err1 := zapray.NewProduction() // log level is set using this
 
 	if err1 != nil {
 		panic("failed to create logger: " + err1.Error())
@@ -87,10 +58,10 @@ func main() {
 		panic("Bucket not available: " + bucketName)
 	}
 
-	hitManager := business.NewHitManager(logger, dbManager)
-	helloManager := business.NewHelloManager(logger, s3Manager, objectName)
+	hitManager := service.NewHitService(logger, dbManager)
+	helloManager := service.NewHelloService(logger, s3Manager, objectName)
 
-	handler := NewHelloHandler(logger, helloManager, hitManager)
+	handler := hello.NewHelloHandler(logger, helloManager, hitManager)
 
 	lambda.Start(handler.Handle)
 }

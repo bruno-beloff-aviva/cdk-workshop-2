@@ -7,7 +7,6 @@ package main
 
 import (
 	s3 "cdk-workshop-2/s3aviva"
-	"strings"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
@@ -25,11 +24,13 @@ const project = "CDK2"
 const version = "0.1.3"
 const region = "eu-west-2"
 
-var bucketName = strings.ToLower(project) + "-hello-bucket"
+const bucketName = "cdk2-hello-bucket"
 
 const objectName = "hello.txt"
 const tableName = project + "HelloHitCounterTable"
-const endpointName = project + "HelloEndpoint"
+const handlerId = project + "HelloHandler"
+const endpointId = project + "HelloEndpoint"
+const stackId = project + "WorkshopStack"
 
 type CdkWorkshopStackProps struct {
 	awscdk.StackProps
@@ -72,16 +73,14 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 }
 
 func NewHelloHandler(stack awscdk.Stack, lambdaEnv map[string]*string) awslambdago.GoFunction {
-	helloHandler := awslambdago.NewGoFunction(stack, aws.String(project+"HelloHandler"), &awslambdago.GoFunctionProps{
-		Runtime:               awslambda.Runtime_PROVIDED_AL2(),
-		Architecture:          awslambda.Architecture_ARM_64(),
-		Entry:                 aws.String("lambda/hello/"),
-		Timeout:               awscdk.Duration_Seconds(aws.Float64(29)),
-		LoggingFormat:         awslambda.LoggingFormat_JSON,
-		LogRetention:          awslogs.RetentionDays_FIVE_DAYS,
-		SystemLogLevelV2:      awslambda.SystemLogLevel_INFO,
-		ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO,
-		Environment:           &lambdaEnv,
+	helloHandler := awslambdago.NewGoFunction(stack, aws.String(handlerId), &awslambdago.GoFunctionProps{
+		Runtime:       awslambda.Runtime_PROVIDED_AL2(),
+		Architecture:  awslambda.Architecture_ARM_64(),
+		Entry:         aws.String("lambda/hello/"),
+		Timeout:       awscdk.Duration_Seconds(aws.Float64(29)),
+		LoggingFormat: awslambda.LoggingFormat_JSON,
+		LogRetention:  awslogs.RetentionDays_FIVE_DAYS,
+		Environment:   &lambdaEnv,
 	})
 
 	return helloHandler
@@ -116,7 +115,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
-	awsapigateway.NewLambdaRestApi(stack, aws.String(endpointName), &restApiProps)
+	awsapigateway.NewLambdaRestApi(stack, aws.String(endpointId), &restApiProps)
 
 	return stack
 }
@@ -125,7 +124,7 @@ func main() {
 	defer jsii.Close()
 
 	app := awscdk.NewApp(nil)
-	NewCdkWorkshopStack(app, project+"WorkshopStack", &CdkWorkshopStackProps{})
+	NewCdkWorkshopStack(app, stackId, &CdkWorkshopStackProps{})
 
 	app.Synth(nil)
 }

@@ -3,7 +3,7 @@
 package dynamomanager
 
 import (
-	"cdk-workshop-2/business/hits"
+	"cdk-workshop-2/service/hits"
 	"context"
 	"fmt"
 	"os"
