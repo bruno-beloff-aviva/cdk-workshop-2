@@ -22,6 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.5.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.10 // indirect
 	github.com/aws/aws-xray-sdk-go v1.8.4 // indirect
+	github.com/aws/constructs-go/constructs/v3 v3.4.232 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -39,6 +40,7 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1 // indirect
+	github.com/aws/aws-cdk-go/awscdk v1.204.0-devpreview
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/aws/aws-sdk-go-v2 v1.34.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.54 // indirect

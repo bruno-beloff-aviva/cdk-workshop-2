@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslogs"
@@ -88,30 +89,30 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	//	stack...
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// // table...
-	// table := NewCdkTable(stack, project+"HelloHitCounterTable")
+	// table...
+	table := NewCdkTable(stack, project+"HelloHitCounterTable")
 
-	// // bucket...
-	// bucket := NewHelloBucket(stack, bucketName)
+	// bucket...
+	bucket := NewHelloBucket(stack, bucketName)
 
 	// lambda...
-	// lambdaEnv := map[string]*string{
-	// 	"HITS_TABLE_NAME":   table.TableName(),
-	// 	"HELLO_BUCKET_NAME": bucket.BucketName(),
-	// 	"HELLO_OBJECT_NAME": aws.String(objectName),
-	// 	"HELLO_VERSION":     aws.String("0.1.1"),
-	// }
+	lambdaEnv := map[string]*string{
+		"HITS_TABLE_NAME":   table.TableName(),
+		"HELLO_BUCKET_NAME": bucket.BucketName(),
+		"HELLO_OBJECT_NAME": aws.String(objectName),
+		"HELLO_VERSION":     aws.String("0.1.1"),
+	}
 
-	// helloHandler := NewHelloHandler(stack, lambdaEnv)
+	helloHandler := NewHelloHandler(stack, lambdaEnv)
 
-	// table.GrantReadWriteData(helloHandler)
-	// bucket.GrantRead(helloHandler, nil)
+	table.GrantReadWriteData(helloHandler)
+	bucket.GrantRead(helloHandler, nil)
 
 	// searcher.GrantReadWrite(helloHandler)
 
 	// gateway...
-	// restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
-	// awsapigateway.NewLambdaRestApi(stack, aws.String(project+"HelloEndpoint"), &restApiProps)
+	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
+	awsapigateway.NewLambdaRestApi(stack, aws.String(project+"HelloEndpoint"), &restApiProps)
 
 	return stack
 }
