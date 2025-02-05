@@ -73,7 +73,7 @@ func (m DynamoManager) Get(ctx context.Context, object DynamoAble) error {
 }
 
 func (m DynamoManager) Put(ctx context.Context, object DynamoAble) error {
-	m.logger.Debug("Insert: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
+	m.logger.Debug("Put: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
 
 	item, err := attributevalue.MarshalMap(object)
 	if err != nil {
@@ -89,6 +89,25 @@ func (m DynamoManager) Put(ctx context.Context, object DynamoAble) error {
 	if err != nil {
 		m.logger.Error("PutItem: ", zap.Error(err))
 	}
+	return err
+}
+
+func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field string) error {
+	m.logger.Debug("Increment: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
+
+	params := dynamodb.UpdateItemInput{
+		Key:                       getDBKey(object),
+		TableName:                 jsii.String(m.tableName),
+		ExpressionAttributeNames:  map[string]string{"#field": field},
+		ExpressionAttributeValues: map[string]types.AttributeValue{":inc": &types.AttributeValueMemberN{Value: "1"}},
+		UpdateExpression:          jsii.String("SET #field = #field + :inc"),
+	}
+
+	_, err := m.dBClient.UpdateItem(ctx, &params)
+	if err != nil {
+		m.logger.Error("UpdateItem: ", zap.Error(err))
+	}
+
 	return err
 }
 

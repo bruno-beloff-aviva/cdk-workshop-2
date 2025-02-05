@@ -23,7 +23,7 @@ func NewHelloService(logger *zapray.Logger, s3Manager s3manager.S3Manager, objec
 	return HelloService{logger: logger, s3Manager: s3Manager, objectName: objectName}
 }
 
-func (m HelloService) HelloFunction(ctx context.Context, client string, hits hits.Hits) (string, error) { //	TODO: add optional error return
+func (m HelloService) HelloFunction(ctx context.Context, client string, hits hits.Hits) (string, error) {
 	m.logger.Info("HelloFunction", zap.String("client", client), zap.String("path", hits.Path))
 
 	// time.Sleep(1 * time.Second)

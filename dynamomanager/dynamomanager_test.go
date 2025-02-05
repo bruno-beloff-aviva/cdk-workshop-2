@@ -52,7 +52,7 @@ func TestGetDBKey(t *testing.T) {
 func TestTableIsAvailable(t *testing.T) {
 	skipCI(t)
 
-	ctx := context.Background() //	context.TODO(), config.WithSharedConfigProfile("bb")
+	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)
 
 	if err != nil {

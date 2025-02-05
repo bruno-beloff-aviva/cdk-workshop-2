@@ -22,10 +22,12 @@ func (m *HitService) HitFunction(ctx context.Context, path string) hits.Hits {
 	m.logger.Info("HitFunction", zap.String("path", path))
 
 	hit := hits.NewHits(path)
-	m.dbManager.Get(ctx, &hit)
+	// m.dbManager.Get(ctx, &hit)
 
-	hit.Increment()
-	m.dbManager.Put(ctx, &hit) // TODO: make this atomic
+	// hit.Increment()
+	// m.dbManager.Put(ctx, &hit) // TODO: make this atomic
+
+	m.dbManager.Increment(ctx, &hit, "count")
 
 	return hit
 }
