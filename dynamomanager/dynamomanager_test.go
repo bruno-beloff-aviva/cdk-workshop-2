@@ -4,9 +4,9 @@ package dynamomanager
 
 import (
 	"cdk-workshop-2/service/hits"
+	"cdk-workshop-2/test"
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -28,12 +28,6 @@ func init() {
 	}
 }
 
-func skipCI(t *testing.T) {
-	if os.Getenv("CI") != "" {
-		t.Skip("Skipping testing in CI environment")
-	}
-}
-
 func TestGetDBKey(t *testing.T) {
 	path := "/test"
 
@@ -50,7 +44,7 @@ func TestGetDBKey(t *testing.T) {
 }
 
 func TestTableIsAvailable(t *testing.T) {
-	skipCI(t)
+	test.SkipCI(t)
 
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)

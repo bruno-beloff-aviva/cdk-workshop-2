@@ -21,7 +21,7 @@ import (
 )
 
 const project = "CDK2"
-const version = "0.1.3"
+const version = "0.1.4"
 const region = "eu-west-2"
 
 const bucketName = "cdk2-hello-bucket"
@@ -32,6 +32,8 @@ const handlerId = project + "HelloHandler"
 const endpointId = project + "HelloEndpoint"
 const stackId = project + "WorkshopStack"
 
+const logPrefix = project + "Hello" // not used by zap logger
+
 type CdkWorkshopStackProps struct {
 	awscdk.StackProps
 }
@@ -39,7 +41,7 @@ type CdkWorkshopStackProps struct {
 func NewHitsTable(scope constructs.Construct, id string) awsdynamodb.Table {
 	this := constructs.NewConstruct(scope, &id)
 
-	table := awsdynamodb.NewTable(this, aws.String("Hits"), &awsdynamodb.TableProps{
+	table := awsdynamodb.NewTable(this, aws.String(tableName), &awsdynamodb.TableProps{
 		PartitionKey: &awsdynamodb.Attribute{Name: aws.String("path"), Type: awsdynamodb.AttributeType_STRING},
 		TableName:    aws.String(tableName),
 	})
@@ -57,7 +59,7 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 	logConfig := s3.BucketLogConfiguration{
 		BucketName: name,
 		Region:     region,
-		LogPrefix:  "HelloLogPrefix",
+		LogPrefix:  logPrefix,
 	}
 
 	props := s3.BucketProps{
