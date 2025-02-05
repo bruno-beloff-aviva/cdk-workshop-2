@@ -32,7 +32,7 @@ func (h HelloHandler) Handle(ctx context.Context, request events.APIGatewayProxy
 	sourceIP := request.RequestContext.Identity.SourceIP
 
 	hit := h.hitManager.HitFunction(ctx, request.Path)
-	message := h.helloManager.HelloFunction(ctx, sourceIP, hit)
+	message, err := h.helloManager.HelloFunction(ctx, sourceIP, hit)
 
-	return response.New200(message), nil
+	return response.New200(message), err
 }
