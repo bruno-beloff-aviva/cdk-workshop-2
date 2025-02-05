@@ -95,7 +95,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	// bucket...
 	var bucket awss3.Bucket
 
-	existing_bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), nil)
+	existing_bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
 	fmt.Printf("existing_bucket: %#v\n", existing_bucket)
 
 	if existing_bucket != nil {
