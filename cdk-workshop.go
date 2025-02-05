@@ -40,6 +40,7 @@ func NewCdkTable(scope constructs.Construct, id string) awsdynamodb.Table {
 
 	table := awsdynamodb.NewTable(this, aws.String("Hits"), &awsdynamodb.TableProps{
 		PartitionKey: &awsdynamodb.Attribute{Name: aws.String("path"), Type: awsdynamodb.AttributeType_STRING},
+		TableName:    aws.String(tableName),
 	})
 
 	return table
@@ -97,8 +98,10 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 
 	// lambda...
 	lambdaEnv := map[string]*string{
-		"HELLO_OBJECT_NAME": aws.String(objectName),
 		"HELLO_VERSION":     aws.String(version),
+		"HELLO_BUCKET_NAME": aws.String(bucketName),
+		"HELLO_OBJECT_NAME": aws.String(objectName),
+		"HITS_TABLE_NAME":   aws.String(tableName),
 	}
 
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
@@ -114,7 +117,6 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	}
 
 	bucket.GrantRead(helloHandler, nil)
-	lambdaEnv["HELLO_BUCKET_NAME"] = bucket.BucketName()
 
 	// table...
 	var table awsdynamodb.ITable
@@ -127,7 +129,6 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	}
 
 	table.GrantReadWriteData(helloHandler)
-	lambdaEnv["HITS_TABLE_NAME"] = table.TableName()
 
 	// gateway...
 	restApiProps := awsapigateway.LambdaRestApiProps{Handler: helloHandler}
