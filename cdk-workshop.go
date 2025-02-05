@@ -93,7 +93,14 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	table := NewCdkTable(stack, project+"HelloHitCounterTable")
 
 	// bucket...
-	bucket := NewHelloBucket(stack, bucketName)
+	var bucket awss3.Bucket
+
+	existing_bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), nil)
+	fmt.Printf("existing_bucket: %#v\n", existing_bucket)
+
+	if existing_bucket != nil {
+		bucket = NewHelloBucket(stack, bucketName)
+	}
 
 	// lambda...
 	lambdaEnv := map[string]*string{
@@ -106,7 +113,10 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
 
 	table.GrantReadWriteData(helloHandler)
-	bucket.GrantRead(helloHandler, nil)
+
+	if existing_bucket != nil {
+		bucket.GrantRead(helloHandler, nil)
+	}
 
 	// searcher.GrantReadWrite(helloHandler)
 
