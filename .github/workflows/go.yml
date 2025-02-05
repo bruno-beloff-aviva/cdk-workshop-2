@@ -21,14 +21,6 @@ jobs:
       pull-requests: read
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-
     - name: Install AWS Lambda Tools
       run: go get -u github.com/aws/aws-lambda-go/cmd/build-lambda-zip
 
@@ -52,6 +44,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
     - name: Go Build
       run: go build -v ./...
   
