@@ -35,7 +35,7 @@ type CdkWorkshopStackProps struct {
 	awscdk.StackProps
 }
 
-func NewCdkTable(scope constructs.Construct, id string) awsdynamodb.Table {
+func NewHitsTable(scope constructs.Construct, id string) awsdynamodb.Table {
 	this := constructs.NewConstruct(scope, &id)
 
 	table := awsdynamodb.NewTable(this, aws.String("Hits"), &awsdynamodb.TableProps{
@@ -46,7 +46,18 @@ func NewCdkTable(scope constructs.Construct, id string) awsdynamodb.Table {
 	return table
 }
 
-func NewHelloBucket(stack awscdk.Stack, name string) awss3.Bucket { // using cdk-standards
+func ExistingHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
+	bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
+	fmt.Printf("*** ExistingHelloBucket: %s\n", *bucket.BucketName())
+
+	return bucket
+}
+
+func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket { // using cdk-standards
+	fmt.Printf("*** NewHelloBucket: %s\n", bucketName)
+
+	defer ExistingHelloBucket(stack, name)
+
 	logConfig := s3.BucketLogConfiguration{
 		BucketName: name,
 		LogPrefix:  "HelloLogPrefix",
@@ -89,10 +100,6 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 		sprops = props.StackProps
 	}
 
-	// searcher := awsopensearchservice.NewDomain(scope, aws.String("HelloSearchDomain"), &awsopensearchservice.DomainProps{
-	// 	DomainName: aws.String("hello-search"),
-	// })
-
 	//	stack...
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
@@ -112,7 +119,6 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	// bucket = awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
 	// fmt.Printf("*** existing bucket: %s\n", *bucket.BucketName())
 
-	fmt.Printf("*** creating bucket: %s\n", bucketName)
 	bucket = NewHelloBucket(stack, bucketName)
 	//	TO-DO: handle panic
 
@@ -125,7 +131,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	// fmt.Printf("*** existing table: %s\n", *table.TableName())
 
 	fmt.Printf("*** creating table: %s\n", tableName)
-	table = NewCdkTable(stack, tableName)
+	table = NewHitsTable(stack, tableName)
 	//	TO-DO: handle panic
 
 	table.GrantReadWriteData(helloHandler)
