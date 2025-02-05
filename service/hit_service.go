@@ -28,6 +28,7 @@ func (m *HitService) HitFunction(ctx context.Context, path string) hits.Hits {
 	// m.dbManager.Put(ctx, &hit) // TODO: make this atomic
 
 	m.dbManager.Increment(ctx, &hit, "count")
+	m.dbManager.Get(ctx, &hit)
 
 	return hit
 }
