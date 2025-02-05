@@ -7,7 +7,6 @@ package main
 
 import (
 	s3 "cdk-workshop-2/s3aviva"
-	"fmt"
 	"strings"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -47,15 +46,10 @@ func NewHitsTable(scope constructs.Construct, id string) awsdynamodb.Table {
 }
 
 func ExistingHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
-	bucket := awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
-	fmt.Printf("*** ExistingHelloBucket: %s\n", *bucket.BucketName())
-
-	return bucket
+	return awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
 }
 
 func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
-	fmt.Printf("*** NewHelloBucket: %s\n", bucketName)
-
 	defer ExistingHelloBucket(stack, name) // after panic
 
 	logConfig := s3.BucketLogConfiguration{
@@ -71,8 +65,6 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 		EventBridgeEnabled: false,
 		LogConfiguration:   logConfig,
 	}
-
-	fmt.Printf("props: %#v\n", props)
 
 	return s3.NewPrivateS3Bucket(props)
 }
@@ -118,13 +110,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	bucket.GrantRead(helloHandler, nil)
 
 	// table...
-	var table awsdynamodb.ITable
-
-	// table = awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
-	// fmt.Printf("*** existing table: %s\n", *table.TableName())
-
-	fmt.Printf("*** creating table: %s\n", tableName)
-	table = NewHitsTable(stack, tableName)
+	table := NewHitsTable(stack, tableName)
 	table.GrantReadWriteData(helloHandler)
 
 	// gateway...
