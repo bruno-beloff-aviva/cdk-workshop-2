@@ -53,10 +53,10 @@ func ExistingHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 	return bucket
 }
 
-func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket { // using cdk-standards
+func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 	fmt.Printf("*** NewHelloBucket: %s\n", bucketName)
 
-	defer ExistingHelloBucket(stack, name)
+	defer ExistingHelloBucket(stack, name) // after panic
 
 	logConfig := s3.BucketLogConfiguration{
 		BucketName: name,
@@ -114,14 +114,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
 
 	// bucket...
-	var bucket awss3.IBucket
-
-	// bucket = awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
-	// fmt.Printf("*** existing bucket: %s\n", *bucket.BucketName())
-
-	bucket = NewHelloBucket(stack, bucketName)
-	//	TO-DO: handle panic
-
+	bucket := NewHelloBucket(stack, bucketName)
 	bucket.GrantRead(helloHandler, nil)
 
 	// table...
@@ -132,8 +125,6 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 
 	fmt.Printf("*** creating table: %s\n", tableName)
 	table = NewHitsTable(stack, tableName)
-	//	TO-DO: handle panic
-
 	table.GrantReadWriteData(helloHandler)
 
 	// gateway...
