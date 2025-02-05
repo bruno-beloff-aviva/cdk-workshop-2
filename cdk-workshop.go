@@ -76,7 +76,7 @@ func NewHelloHandler(stack awscdk.Stack, lambdaEnv map[string]*string) awslambda
 	helloHandler := awslambdago.NewGoFunction(stack, aws.String(handlerId), &awslambdago.GoFunctionProps{
 		Runtime:       awslambda.Runtime_PROVIDED_AL2(),
 		Architecture:  awslambda.Architecture_ARM_64(),
-		Entry:         aws.String("lambda/hello/"),
+		Entry:         aws.String("lambda/hello/hello_handler"),
 		Timeout:       awscdk.Duration_Seconds(aws.Float64(29)),
 		LoggingFormat: awslambda.LoggingFormat_JSON,
 		LogRetention:  awslogs.RetentionDays_FIVE_DAYS,
