@@ -109,26 +109,24 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	// bucket...
 	var bucket awss3.IBucket
 
-	bucket = awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
-	fmt.Printf("*** existing bucket: %s\n", *bucket.BucketName())
+	// bucket = awss3.Bucket_FromBucketName(stack, aws.String(bucketName), aws.String(bucketName))
+	// fmt.Printf("*** existing bucket: %s\n", *bucket.BucketName())
 
-	if bucket == nil {
-		fmt.Printf("*** creating bucket: %s\n", bucketName)
-		bucket = NewHelloBucket(stack, bucketName)
-	}
+	fmt.Printf("*** creating bucket: %s\n", bucketName)
+	bucket = NewHelloBucket(stack, bucketName)
+	//	TO-DO: handle panic
 
 	bucket.GrantRead(helloHandler, nil)
 
 	// table...
 	var table awsdynamodb.ITable
 
-	table = awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
-	fmt.Printf("*** existing table: %s\n", *table.TableName())
+	// table = awsdynamodb.Table_FromTableName(stack, aws.String(tableName), aws.String(tableName))
+	// fmt.Printf("*** existing table: %s\n", *table.TableName())
 
-	if table == nil {
-		fmt.Printf("*** creating table: %s\n", tableName)
-		table = NewCdkTable(stack, tableName)
-	}
+	fmt.Printf("*** creating table: %s\n", tableName)
+	table = NewCdkTable(stack, tableName)
+	//	TO-DO: handle panic
 
 	table.GrantReadWriteData(helloHandler)
 
