@@ -73,17 +73,16 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 
 func NewHelloHandler(stack awscdk.Stack, lambdaEnv map[string]*string) awslambdago.GoFunction {
 	helloHandler := awslambdago.NewGoFunction(stack, aws.String(project+"HelloHandler"), &awslambdago.GoFunctionProps{
-		Runtime:       awslambda.Runtime_PROVIDED_AL2(),
-		Architecture:  awslambda.Architecture_ARM_64(),
-		Entry:         aws.String("lambda/hello/"),
-		Timeout:       awscdk.Duration_Seconds(aws.Float64(29)),
-		LoggingFormat: awslambda.LoggingFormat_JSON,
-		LogRetention:  awslogs.RetentionDays_FIVE_DAYS,
-		Environment:   &lambdaEnv,
+		Runtime:               awslambda.Runtime_PROVIDED_AL2(),
+		Architecture:          awslambda.Architecture_ARM_64(),
+		Entry:                 aws.String("lambda/hello/"),
+		Timeout:               awscdk.Duration_Seconds(aws.Float64(29)),
+		LoggingFormat:         awslambda.LoggingFormat_JSON,
+		LogRetention:          awslogs.RetentionDays_FIVE_DAYS,
+		SystemLogLevelV2:      awslambda.SystemLogLevel_INFO,
+		ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO,
+		Environment:           &lambdaEnv,
 	})
-
-	// ApplicationLogLevelV2: awslambda.ApplicationLogLevel_INFO,
-	// SystemLogLevelV2:      awslambda.SystemLogLevel_INFO,
 
 	return helloHandler
 }
