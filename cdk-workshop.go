@@ -113,6 +113,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	fmt.Printf("*** existing bucket: %s\n", *bucket.BucketName())
 
 	if bucket == nil {
+		fmt.Printf("*** creating bucket: %s\n", bucketName)
 		bucket = NewHelloBucket(stack, bucketName)
 	}
 
@@ -125,6 +126,7 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	fmt.Printf("*** existing table: %s\n", *table.TableName())
 
 	if table == nil {
+		fmt.Printf("*** creating table: %s\n", tableName)
 		table = NewCdkTable(stack, tableName)
 	}
 
