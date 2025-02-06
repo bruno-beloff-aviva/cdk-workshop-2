@@ -38,16 +38,16 @@ type CdkWorkshopStackProps struct {
 	awscdk.StackProps
 }
 
-func existingHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
-	return awsdynamodb.TableV2_FromTableName(scope, aws.String(id), aws.String(id))
-}
+// func existingHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
+// 	return awsdynamodb.TableV2_FromTableName(scope, aws.String(id), aws.String(id))
+// }
 
 func NewHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
-	defer existingHitsTable(scope, id) // after panic on "aldready exists"
+	// defer existingHitsTable(scope, id) // after panic on "aldready exists"
 
 	this := constructs.NewConstruct(scope, &id)
 
-	table := awsdynamodb.NewTable(this, aws.String(tableName), &awsdynamodb.TableProps{
+	table := awsdynamodb.NewTable(this, aws.String("Hits"), &awsdynamodb.TableProps{
 		PartitionKey: &awsdynamodb.Attribute{Name: aws.String("path"), Type: awsdynamodb.AttributeType_STRING},
 		TableName:    aws.String(tableName),
 	})
