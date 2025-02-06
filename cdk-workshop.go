@@ -42,12 +42,12 @@ type CdkWorkshopStackProps struct {
 	awscdk.StackProps
 }
 
-func existingHitsTable(scope constructs.Construct, id string, name string) awsdynamodb.ITable {
+func ExistingHitsTable(scope constructs.Construct, id string, name string) awsdynamodb.ITable {
 	return awsdynamodb.TableV2_FromTableName(scope, aws.String(id), aws.String(name))
 }
 
 func NewHitsTable(scope constructs.Construct, id string, name string) awsdynamodb.ITable {
-	defer existingHitsTable(scope, id, name) // after panic on "aldready exists"
+	// defer ExistingHitsTable(scope, id, name) // after panic on "aldready exists"
 
 	this := constructs.NewConstruct(scope, &id)
 
@@ -60,12 +60,12 @@ func NewHitsTable(scope constructs.Construct, id string, name string) awsdynamod
 	return table
 }
 
-func existingHelloBucket(stack awscdk.Stack, id string, name string) awss3.IBucket {
+func ExistingHelloBucket(stack awscdk.Stack, id string, name string) awss3.IBucket {
 	return awss3.Bucket_FromBucketName(stack, aws.String(id), aws.String(name))
 }
 
 func NewHelloBucket(stack awscdk.Stack, id string, name string) awss3.IBucket {
-	defer existingHelloBucket(stack, id, name) // after panic on "aldready exists"
+	// defer ExistingHelloBucket(stack, id, name) // after panic on "aldready exists"
 
 	logConfig := s3.BucketLogConfiguration{
 		BucketName: name,
