@@ -21,7 +21,7 @@ import (
 )
 
 const project = "CDK2"
-const version = "0.1.4"
+const version = "0.2.0"
 const region = "eu-west-2"
 
 const bucketName = "cdk2-hello-bucket"
