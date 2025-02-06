@@ -101,9 +101,12 @@ func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field s
 		ExpressionAttributeNames:  map[string]string{"#field": field},
 		ExpressionAttributeValues: map[string]types.AttributeValue{":inc": &types.AttributeValueMemberN{Value: "1"}},
 		UpdateExpression:          jsii.String("SET #field = #field + :inc"),
+		ReturnValues:              types.ReturnValueAllNew,
 	}
 
-	_, err := m.dBClient.UpdateItem(ctx, &params)
+	response, err := m.dBClient.UpdateItem(ctx, &params)
+	m.logger.Debug("Increment: ", zap.Any("response", response))
+
 	if err != nil {
 		m.logger.Error("UpdateItem: ", zap.Error(err))
 	}
