@@ -39,7 +39,7 @@ type CdkWorkshopStackProps struct {
 }
 
 func existingHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
-	return awsdynamodb.Table_FromTableName(scope, aws.String(id), aws.String(id))
+	return awsdynamodb.TableV2_FromTableName(scope, aws.String(id), aws.String(id))
 }
 
 func NewHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
