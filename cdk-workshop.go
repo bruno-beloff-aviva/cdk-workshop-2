@@ -24,7 +24,7 @@ const project = "CDK2"
 const version = "0.1.4"
 const region = "eu-west-2"
 
-const bucketName = "hello-bucket"
+const bucketName = "cdk2-hello-bucket"
 const bucketId = "cdk2-hello-bucket"
 
 const objectName = "hello.txt"
