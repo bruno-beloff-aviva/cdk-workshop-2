@@ -89,6 +89,7 @@ func (m DynamoManager) Put(ctx context.Context, object DynamoAble) error {
 	if err != nil {
 		m.logger.Error("PutItem: ", zap.Error(err))
 	}
+
 	return err
 }
 
@@ -109,9 +110,10 @@ func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field s
 
 	if err != nil {
 		m.logger.Error("UpdateItem: ", zap.Error(err))
+		return m.Put(ctx, object)
 	}
 
-	return err
+	return nil
 }
 
 // --------------------------------------------------------------------------------------------------------------------
