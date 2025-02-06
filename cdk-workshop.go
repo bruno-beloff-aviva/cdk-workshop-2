@@ -24,10 +24,14 @@ const project = "CDK2"
 const version = "0.1.4"
 const region = "eu-west-2"
 
-const bucketName = "cdk2-hello-bucket"
+const bucketName = "hello-bucket"
+const bucketId = "cdk2-hello-bucket"
 
 const objectName = "hello.txt"
-const tableName = project + "HelloHitCounterTable"
+
+const tableName = "HelloHitCounterTable"
+const tableId = project + tableName
+
 const handlerId = project + "HelloHandler"
 const endpointId = project + "HelloEndpoint"
 const stackId = project + "WorkshopStack"
@@ -38,29 +42,30 @@ type CdkWorkshopStackProps struct {
 	awscdk.StackProps
 }
 
-// func existingHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
-// 	return awsdynamodb.TableV2_FromTableName(scope, aws.String(id), aws.String(id))
-// }
+func existingHitsTable(scope constructs.Construct, id string, name string) awsdynamodb.ITable {
+	return awsdynamodb.TableV2_FromTableName(scope, aws.String(id), aws.String(name))
+}
 
-func NewHitsTable(scope constructs.Construct, id string) awsdynamodb.ITable {
-	// defer existingHitsTable(scope, id) // after panic on "aldready exists"
+func NewHitsTable(scope constructs.Construct, id string, name string) awsdynamodb.ITable {
+	defer existingHitsTable(scope, id, name) // after panic on "aldready exists"
 
 	this := constructs.NewConstruct(scope, &id)
 
-	table := awsdynamodb.NewTable(this, aws.String("Hits"), &awsdynamodb.TableProps{
+	// keep ID different from name at this stage, to prevent "already exists" panic
+	table := awsdynamodb.NewTable(this, aws.String(id), &awsdynamodb.TableProps{
 		PartitionKey: &awsdynamodb.Attribute{Name: aws.String("path"), Type: awsdynamodb.AttributeType_STRING},
-		TableName:    aws.String(tableName),
+		TableName:    aws.String(name),
 	})
 
 	return table
 }
 
-func existingHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
-	return awss3.Bucket_FromBucketName(stack, aws.String(name), aws.String(name))
+func existingHelloBucket(stack awscdk.Stack, id string, name string) awss3.IBucket {
+	return awss3.Bucket_FromBucketName(stack, aws.String(id), aws.String(name))
 }
 
-func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
-	defer existingHelloBucket(stack, name) // after panic on "aldready exists"
+func NewHelloBucket(stack awscdk.Stack, id string, name string) awss3.IBucket {
+	defer existingHelloBucket(stack, id, name) // after panic on "aldready exists"
 
 	logConfig := s3.BucketLogConfiguration{
 		BucketName: name,
@@ -70,7 +75,7 @@ func NewHelloBucket(stack awscdk.Stack, name string) awss3.IBucket {
 
 	props := s3.BucketProps{
 		Stack:              stack,
-		Name:               name + "-props",
+		Name:               id,
 		OverrideBucketName: aws.String(name),
 		Versioned:          false,
 		EventBridgeEnabled: false,
@@ -114,11 +119,11 @@ func NewCdkWorkshopStack(scope constructs.Construct, id string, props *CdkWorksh
 	helloHandler := NewHelloHandler(stack, lambdaEnv)
 
 	// bucket...
-	bucket := NewHelloBucket(stack, bucketName)
+	bucket := NewHelloBucket(stack, bucketId, bucketName)
 	bucket.GrantRead(helloHandler, nil)
 
 	// table...
-	table := NewHitsTable(stack, tableName)
+	table := NewHitsTable(stack, tableId, tableName)
 	table.GrantReadWriteData(helloHandler)
 
 	// gateway...
