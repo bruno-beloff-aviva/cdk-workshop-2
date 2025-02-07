@@ -58,17 +58,15 @@ func (m DynamoManager) Get(ctx context.Context, object DynamoAble) error {
 	}
 
 	response, err := m.dBClient.GetItem(ctx, &params)
-	m.logger.Debug("Get: ", zap.Any("response", response))
 
 	if err != nil {
 		m.logger.Error("GetItem: ", zap.Any("key", object.GetKey()), zap.Error(err))
 	} else {
 		err = attributevalue.UnmarshalMap(response.Item, &object)
 		if err != nil {
-			m.logger.Error("GetItem UnmarshalMap: ", zap.Error(err))
+			panic(err)
 		}
 	}
-	m.logger.Debug("Get: ", zap.Any("object", object))
 
 	return err
 }
