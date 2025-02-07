@@ -58,4 +58,4 @@ jobs:
       run: cdk deploy --all --require-approval never
 
     - name: Upload hello to S3
-      run: aws s3 cp hello.txt s3://my-bucket-name
+      run: aws s3 cp hello.txt s3://cdk2-hello-bucket
