@@ -11,6 +11,7 @@ package dynamomanager
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -95,13 +96,9 @@ func (m DynamoManager) Put(ctx context.Context, object DynamoAble) error {
 
 func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field string) (err error) {
 	m.logger.Debug("Increment: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
-	var response *dynamodb.UpdateItemOutput
 
 	defer func() {
-		r := recover()
-
-		if r != nil || err != nil {
-			m.logger.Debug("Increment - defer ", zap.Any("r", r), zap.Any("err", err))
+		if err != nil && strings.Contains(err.Error(), "does not exist") {
 			err = m.Put(ctx, object)
 		}
 	}()
@@ -116,48 +113,10 @@ func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field s
 		ReturnValues:              types.ReturnValueAllNew,
 	}
 
-	response, err = m.dBClient.UpdateItem(ctx, &update_params)
-	m.logger.Debug("Increment: ", zap.Any("response", response))
+	_, err = m.dBClient.UpdateItem(ctx, &update_params)
 
 	return err
 }
-
-// func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field string) error {
-// 	m.logger.Debug("Increment: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
-
-// 	// check for existence
-// 	get_params := dynamodb.GetItemInput{
-// 		Key:       getDBKey(object),
-// 		TableName: jsii.String(m.tableName),
-// 	}
-
-// 	response1, err1 := m.dBClient.GetItem(ctx, &get_params)
-// 	m.logger.Debug("Get: ", zap.Any("response", response1))
-
-// 	if err1 != nil {
-// 		m.logger.Error("UpdateItem: ", zap.Error(err1))
-// 	}
-
-// 	// increment
-// 	update_params := dynamodb.UpdateItemInput{
-// 		Key:                       getDBKey(object),
-// 		TableName:                 jsii.String(m.tableName),
-// 		ExpressionAttributeNames:  map[string]string{"#field": field},
-// 		ExpressionAttributeValues: map[string]types.AttributeValue{":inc": &types.AttributeValueMemberN{Value: "1"}},
-// 		UpdateExpression:          jsii.String("SET #field = #field + :inc"),
-// 		ReturnValues:              types.ReturnValueAllNew,
-// 	}
-
-// 	response2, err2 := m.dBClient.UpdateItem(ctx, &update_params)
-// 	m.logger.Debug("Increment: ", zap.Any("response2", response2))
-
-// 	if err2 != nil {
-// 		m.logger.Error("UpdateItem: ", zap.Error(err2))
-// 		return m.Put(ctx, object)
-// 	}
-
-// 	return nil
-// }
 
 // --------------------------------------------------------------------------------------------------------------------
 
