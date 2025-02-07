@@ -98,14 +98,14 @@ func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field s
 	var response *dynamodb.UpdateItemOutput
 	var err error
 
-	defer func() {
+	defer func(err *error) {
 		r := recover()
 
 		if r != nil || err != nil {
-			m.logger.Debug("Increment - defer ", zap.Any("r", r), zap.Any("err", err))
-			err = m.Put(ctx, object)
+			m.logger.Debug("Increment - defer ", zap.Any("r", r), zap.Any("err", *err))
+			*err = m.Put(ctx, object)
 		}
-	}()
+	}(&err)
 
 	// increment
 	update_params := dynamodb.UpdateItemInput{
