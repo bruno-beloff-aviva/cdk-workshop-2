@@ -8,7 +8,7 @@ type Hits struct {
 }
 
 func NewHits(path string) Hits {
-	return Hits{Path: path, Count: 0}
+	return Hits{Path: path, Count: 1}
 }
 
 func (h *Hits) String() string {
