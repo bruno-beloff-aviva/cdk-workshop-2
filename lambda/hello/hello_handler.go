@@ -34,15 +34,13 @@ func (h HelloHandler) Handle(ctx context.Context, request events.APIGatewayProxy
 	hit := h.hitService.Tally(ctx, request.Path)
 	message, err := h.helloService.SayHello(ctx, sourceIP, hit)
 
-	var statusCode int
+	var resp response.HelloResponse
 
 	if err == nil {
-		statusCode = 200
+		resp = response.NewOKHelloResponse(message)
 	} else {
-		statusCode = 500
+		resp = response.NewErrorHelloResponse(err, message)
 	}
 
-	resp := response.NewHelloResponse(statusCode, err, message)
-
-	return resp.APIResponse()
+	return resp.APIResponse() // marshalErr is handled by the container
 }
