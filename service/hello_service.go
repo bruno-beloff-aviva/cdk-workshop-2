@@ -23,8 +23,8 @@ func NewHelloService(logger *zapray.Logger, s3Manager s3manager.S3Manager, objec
 	return HelloService{logger: logger, s3Manager: s3Manager, objectName: objectName}
 }
 
-func (m HelloService) HelloFunction(ctx context.Context, client string, hits hits.Hits) (string, error) {
-	m.logger.Info("HelloFunction", zap.String("client", client), zap.String("path", hits.Path))
+func (m HelloService) SayHello(ctx context.Context, client string, hits hits.Hits) (message string, err error) {
+	m.logger.Info("SayHello", zap.String("client", client), zap.String("path", hits.Path))
 
 	// time.Sleep(1 * time.Second)
 
@@ -32,10 +32,10 @@ func (m HelloService) HelloFunction(ctx context.Context, client string, hits hit
 		return "Hello Go world!", nil
 	}
 
-	message, err := m.s3Manager.GetFileContents(ctx, m.objectName)
+	message, err = m.s3Manager.GetFileContents(ctx, m.objectName)
 
 	if err != nil {
-		panic("HelloFunction: failed to get file contents: " + err.Error())
+		return message, err
 	}
 
 	if strings.Contains(hits.Path, "panic") {
