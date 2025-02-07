@@ -27,7 +27,9 @@ func (m *HitService) HitFunction(ctx context.Context, path string) hits.Hits {
 	// hit.Increment()
 	// m.dbManager.Put(ctx, &hit) // TODO: make this atomic
 
-	m.dbManager.Increment(ctx, &hit, "count")
+	err := m.dbManager.Increment(ctx, &hit, "count")
+	m.logger.Info("HitFunction: got err from Increment: ", zap.Any("err", err))
+
 	m.dbManager.Get(ctx, &hit)
 
 	return hit

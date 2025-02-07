@@ -97,8 +97,10 @@ func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field s
 	m.logger.Debug("Increment: ", zap.Any("object", object), zap.Any("key", object.GetKey()))
 
 	defer func() {
-		if r := recover(); r != nil {
-			m.logger.Debug("Recovered: ", zap.Any("r", r))
+		r := recover()
+		m.logger.Debug("Increment - defer - recover: ", zap.Any("r", r))
+		if r != nil {
+			m.logger.Debug("Increment - recovered")
 		}
 	}()
 
@@ -115,10 +117,10 @@ func (m DynamoManager) Increment(ctx context.Context, object DynamoAble, field s
 	response, err := m.dBClient.UpdateItem(ctx, &update_params)
 	m.logger.Debug("Increment: ", zap.Any("response", response))
 
-	if err != nil {
-		m.logger.Error("UpdateItem: ", zap.Error(err))
-		// return m.Put(ctx, object)
-	}
+	// if err != nil {
+	// 	m.logger.Error("UpdateItem: ", zap.Error(err))
+	// 	// return m.Put(ctx, object)
+	// }
 
 	return err
 }
