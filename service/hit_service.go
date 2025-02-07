@@ -18,14 +18,14 @@ func NewHitService(logger *zapray.Logger, dbManager dynamomanager.DynamoManager)
 	return HitService{logger: logger, dbManager: dbManager}
 }
 
-func (m *HitService) HitFunction(ctx context.Context, path string) hits.Hits {
-	m.logger.Info("HitFunction", zap.String("path", path))
+func (m *HitService) Tally(ctx context.Context, path string) hits.Hits {
+	m.logger.Info("Tally", zap.String("path", path))
 
 	hit := hits.NewHits(path)
 
 	err := m.dbManager.Increment(ctx, &hit, "count")
 	if err != nil {
-		m.logger.Error("HitFunction: ", zap.Error(err))
+		m.logger.Error("Tally: ", zap.Error(err))
 	}
 
 	m.dbManager.Get(ctx, &hit)
