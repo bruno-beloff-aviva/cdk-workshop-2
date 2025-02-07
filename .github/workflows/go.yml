@@ -57,4 +57,5 @@ jobs:
     - name: CDK Deploy
       run: cdk deploy --all --require-approval never
 
-# TODO: put hello.txt into the bucket
+    - name: Upload hello to S3
+      run: aws s3 cp hello.txt s3://my-bucket-name
