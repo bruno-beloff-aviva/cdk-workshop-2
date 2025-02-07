@@ -34,9 +34,15 @@ func (h HelloHandler) Handle(ctx context.Context, request events.APIGatewayProxy
 	hit := h.hitService.Tally(ctx, request.Path)
 	message, err := h.helloService.SayHello(ctx, sourceIP, hit)
 
-	if err != nil {
-		return response.New(500, err.Error()), err
+	var statusCode int
+
+	if err == nil {
+		statusCode = 200
+	} else {
+		statusCode = 500
 	}
 
-	return response.New(200, message), nil
+	resp := response.NewHelloResponse(statusCode, err, message)
+
+	return resp.APIResponse()
 }

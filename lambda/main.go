@@ -63,8 +63,6 @@ func main() {
 
 	handler := hello.NewHelloHandler(logger, helloManager, hitManager)
 
-	// lambda.Start(handler.Handle)
-
 	lambda.StartWithOptions(handler.Handle, lambda.WithEnableSIGTERM(func() {
 		logger.Info("Lambda container shutting down.")
 	}))
